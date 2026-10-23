@@ -1,0 +1,51 @@
+{
+  "name": "dsh-mobile-link",
+  "version": "1.0.0",
+  "displayName": "手机互联",
+  "description": "Phone pairing for DeepSeek Harness: three values (relay, room, key) bind a phone to this desktop, then the phone can read and continue the desktop's sessions from any network. Ships its own zero-dependency relay for NAT-to-NAT use. 三项值（中继 / 房间号 / 口令）把手机与电脑配对，手机可在任何网络下读取并续接电脑上的会话；内置零依赖中继。",
+  "type": "module",
+  "main": "./index.js",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./icon": "./icon.svg",
+    "./relay": "./relay/server.mjs",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "relay/server.mjs",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "relay": "node relay/server.mjs",
+    "check": "node --check index.js && node --check client.js && node --check relay/server.mjs"
+  },
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "mobile",
+    "pairing",
+    "relay",
+    "companion"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "inject": ["@deepseek-ai/dsh-client-locale"]
+    }
+  }
+}

@@ -62,6 +62,23 @@ DSH Mobile 是 **DeepSeek Harness（DSH）** 生态的 Android 客户端，与�
 1. 打开 App，在设置中配置模型 API 与密钥即可开始对话；
 2. （可选）设置 → 连接电脑，填桌面端面板三项完成配对。
 
+## 连接电脑：Mobile Link 桌面插件
+
+「连接电脑」功能由配套的 **DSH 桌面插件 `dsh-mobile-link`** 提供（本仓库 [`desktop-plugin/`](desktop-plugin/) 目录，含完整安装说明）：
+
+- 桌面面板显示 **中继地址 / 房间号 / 口令** 三项，手机端填入即配对，每项带一键复制
+- 手机可浏览并**续接电脑上的真实会话**，消息进入桌面端 agent 收件箱
+- 内置零依赖中继（`relay/server.mjs`），也可自托管到 VPS / Docker，两端都只做出站连接，无需公网 IP
+- 设备管理（移除 / 重置配对）、连接诊断、30s 心跳与看门狗
+
+安装（DSH CLI，支持 GitHub 直装）：
+
+```bash
+dsh plugin --profile <profile名> add "github:xiaobaga281/dsh-mobile#path:desktop-plugin"
+```
+
+或按 [`desktop-plugin/README.md`](desktop-plugin/README.md) 的手动方式放入 `%USERPROFILE%\.dsh\plugins\`。
+
 ## 系统要求
 
 - Android 8.0（API 26）及以上

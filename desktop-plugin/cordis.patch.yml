@@ -1,0 +1,6 @@
+# dsh-mobile-link — one Host row. Registers the pairing routes the panel
+# calls and starts the outbound relay loop once a relay address is configured.
+- insert:
+    - id: mobile-link
+      name: 'dsh-mobile-link'
+      config: {}
