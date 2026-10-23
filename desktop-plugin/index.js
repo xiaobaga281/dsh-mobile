@@ -1,8 +1,9 @@
 /**
  * Host half of `@local/dsh-mobile-link`.
  *
- * Turns this desktop harness into something a phone can pair with by scanning
- * one QR code, then read and continue the desktop's own sessions from anywhere.
+ * Turns this desktop harness into something a phone can pair with by typing
+ * three values (relay / room / key), then read and continue the desktop's own
+ * sessions from anywhere.
  *
  * Why a relay instead of "just listen on the LAN": a phone on mobile data and a
  * desktop behind home NAT cannot reach each other, and opening a port is not a
@@ -757,7 +758,7 @@ async function relayHealth() {
  *
  * Read from the interfaces at the moment it is needed, never configured: a
  * laptop moves between networks and a DHCP lease that changed must not leave a
- * dead URL inside the QR code. Private ranges first — that is what a home or
+ * dead address on the panel. Private ranges first — that is what a home or
  * office LAN hands out.
  */
 function lanAddress() {

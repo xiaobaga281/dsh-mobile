@@ -6,7 +6,7 @@ window.__ModuleLoader__.load({
     const NS = 'mobile-link';
     const PANEL_ID = 'mobile-link';
 
-    /** How often the panel re-reads pairing state; the QR itself changes only on rotation. */
+    /** How often the panel re-reads pairing state. */
     const POLL_MS = 2500;
 
     const dicts = {
@@ -42,7 +42,6 @@ window.__ModuleLoader__.load({
         saving: '保存中…',
         saved: '已保存',
         loadFailed: '读取配对状态失败：',
-        qrFailed: '二维码生成失败：',
         lastSeen: '最近连接',
         never: '从未连接',
         justNow: '刚刚',
@@ -98,7 +97,6 @@ window.__ModuleLoader__.load({
         saving: 'Saving…',
         saved: 'Saved',
         loadFailed: 'Could not read pairing state: ',
-        qrFailed: 'Could not build the QR code: ',
         lastSeen: 'Last seen',
         never: 'never',
         justNow: 'just now',
@@ -488,10 +486,9 @@ window.__ModuleLoader__.load({
 .ml-badge-idle { background: rgba(128, 128, 128, .14); opacity: .8; }
 .ml-card { border: 1px solid rgba(128,128,128,.18); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .ml-pair { align-items: center; }
-.ml-qr-error { color: #d1242f; font-size: 12px; }
 .ml-notice { font-size: 12.5px; padding: 8px 12px; border-radius: 10px; background: rgba(212, 133, 15, .12); color: #b7791f; }
 /* Three rows of text instead of a code: readable, copyable, and it survives a
-   screenshot that loses focus — which a QR code on a dim panel does not. */
+   screenshot that loses focus. */
 .ml-cred { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 .ml-cred-row { display: flex; align-items: center; gap: 10px; }
 .ml-cred-label { flex: 0 0 72px; font-size: 12px; opacity: .55; }
