@@ -2,7 +2,7 @@
   "name": "dsh-mobile-link",
   "version": "1.0.0",
   "displayName": "手机互联",
-  "description": "Phone pairing for DeepSeek Harness: three values (relay, room, key) bind a phone to this desktop, then the phone can read and continue the desktop's sessions from any network. Ships its own zero-dependency relay for NAT-to-NAT use. 三项值（中继 / 房间号 / 口令）把手机与电脑配对，手机可在任何网络下读取并续接电脑上的会话；内置零依赖中继。",
+  "description": "Phone pairing for DeepSeek Harness: three values (relay, room, key) bind a phone to this desktop, then the phone can read and continue the desktop's sessions. Works out of the box on the same LAN; across networks, self-host the bundled zero-dependency relay on a public server. 三项值（中继 / 房间号 / 口令）把手机与电脑配对，手机可读取并续接电脑上的会话；同一局域网开箱即用，跨网请把内置零依赖中继自部署到公网服务器。",
   "type": "module",
   "main": "./index.js",
   "icon": "./icon.svg",
