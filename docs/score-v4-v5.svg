@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 610" font-family="-apple-system,Segoe UI,PingFang SC,Noto Sans SC,sans-serif">
+<rect width="800" height="610" fill="#ffffff"/>
+<text x="8" y="30" font-size="17" font-weight="600" fill="#1a1a1a">九域均分：v4（rc.111）→ v5（rc.112）</text>
+<text x="8" y="50" font-size="12" fill="#666">六维评分 · 自评口径（1–10），每条分数对应代码位置或实测数据</text>
+<rect x="160" y="42" width="10" height="10" rx="2" fill="#B5D4F4"/><text x="176" y="51" font-size="12" fill="#444">v4 = 7.4</text>
+<rect x="361" y="42" width="10" height="10" rx="2" fill="#378ADD"/><text x="375" y="51" font-size="12" fill="#444">v5 = 7.8</text>
+<line x1="160.0" y1="88" x2="160.0" y2="580" stroke="#e5e5e5" stroke-width="1"/>
+<text x="160.0" y="596" font-size="11" fill="#999" text-anchor="middle">5</text>
+<line x1="286.2" y1="88" x2="286.2" y2="580" stroke="#e5e5e5" stroke-width="1"/>
+<text x="286.2" y="596" font-size="11" fill="#999" text-anchor="middle">6</text>
+<line x1="412.4" y1="88" x2="412.4" y2="580" stroke="#e5e5e5" stroke-width="1"/>
+<text x="412.4" y="596" font-size="11" fill="#999" text-anchor="middle">7</text>
+<line x1="538.6" y1="88" x2="538.6" y2="580" stroke="#e5e5e5" stroke-width="1"/>
+<text x="538.6" y="596" font-size="11" fill="#999" text-anchor="middle">8</text>
+<line x1="664.8" y1="88" x2="664.8" y2="580" stroke="#e5e5e5" stroke-width="1"/>
+<text x="664.8" y="596" font-size="11" fill="#999" text-anchor="middle">9</text>
+<line x1="538.6" y1="88" x2="538.6" y2="580" stroke="#d0a000" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="150" y="115.0" font-size="13" fill="#1a1a1a" text-anchor="end">终端与代码 ·新</text>
+<rect x="160" y="102" width="252.4" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="122" width="454.3" height="15" rx="2" fill="#378ADD"/>
+<text x="417.4" y="109.5" font-size="10" fill="#888" dominant-baseline="central">7.0</text>
+<text x="621.3" y="129.5" font-size="11" font-weight="600" fill="#185FA5" dominant-baseline="central">8.6  ↑1.6</text>
+<text x="150" y="167.0" font-size="13" fill="#1a1a1a" text-anchor="end">造 App ·新</text>
+<rect x="160" y="154" width="416.4" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="174" width="441.7" height="15" rx="2" fill="#378ADD"/>
+<text x="581.4" y="161.5" font-size="10" fill="#888" dominant-baseline="central">8.3</text>
+<text x="608.7" y="181.5" font-size="11" font-weight="600" fill="#185FA5" dominant-baseline="central">8.5  ↑0.2</text>
+<text x="150" y="219.0" font-size="13" fill="#1a1a1a" text-anchor="end">文件系统</text>
+<rect x="160" y="206" width="378.6" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="226" width="378.6" height="15" rx="2" fill="#378ADD"/>
+<text x="543.6" y="213.5" font-size="10" fill="#888" dominant-baseline="central">8.0</text>
+<text x="545.6" y="233.5" font-size="11" font-weight="600" fill="#888" dominant-baseline="central">8.0</text>
+<text x="150" y="271.0" font-size="13" fill="#1a1a1a" text-anchor="end">手机操控 ·新</text>
+<rect x="160" y="258" width="290.2" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="278" width="353.3" height="15" rx="2" fill="#378ADD"/>
+<text x="455.2" y="265.5" font-size="10" fill="#888" dominant-baseline="central">7.3</text>
+<text x="520.3" y="285.5" font-size="11" font-weight="600" fill="#185FA5" dominant-baseline="central">7.8  ↑0.5</text>
+<text x="150" y="323.0" font-size="13" fill="#1a1a1a" text-anchor="end">团队协作</text>
+<rect x="160" y="310" width="340.7" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="330" width="340.7" height="15" rx="2" fill="#378ADD"/>
+<text x="505.7" y="317.5" font-size="10" fill="#888" dominant-baseline="central">7.7</text>
+<text x="507.7" y="337.5" font-size="11" font-weight="600" fill="#888" dominant-baseline="central">7.7</text>
+<text x="150" y="375.0" font-size="13" fill="#1a1a1a" text-anchor="end">文件制作交付 ·新</text>
+<rect x="160" y="362" width="290.2" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="382" width="328.1" height="15" rx="2" fill="#378ADD"/>
+<text x="455.2" y="369.5" font-size="10" fill="#888" dominant-baseline="central">7.3</text>
+<text x="495.1" y="389.5" font-size="11" font-weight="600" fill="#185FA5" dominant-baseline="central">7.6  ↑0.3</text>
+<text x="150" y="427.0" font-size="13" fill="#1a1a1a" text-anchor="end">媒体与设备 ·新</text>
+<rect x="160" y="414" width="252.4" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="434" width="315.5" height="15" rx="2" fill="#378ADD"/>
+<text x="417.4" y="421.5" font-size="10" fill="#888" dominant-baseline="central">7.0</text>
+<text x="482.5" y="441.5" font-size="11" font-weight="600" fill="#185FA5" dominant-baseline="central">7.5  ↑0.5</text>
+<text x="150" y="479.0" font-size="13" fill="#1a1a1a" text-anchor="end">会话与记忆</text>
+<rect x="160" y="466" width="290.2" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="486" width="290.2" height="15" rx="2" fill="#378ADD"/>
+<text x="455.2" y="473.5" font-size="10" fill="#888" dominant-baseline="central">7.3</text>
+<text x="457.2" y="493.5" font-size="11" font-weight="600" fill="#888" dominant-baseline="central">7.3</text>
+<text x="150" y="531.0" font-size="13" fill="#1a1a1a" text-anchor="end">桌面兼容插件 ·新</text>
+<rect x="160" y="518" width="189.3" height="15" rx="2" fill="#B5D4F4"/>
+<rect x="160" y="538" width="189.3" height="15" rx="2" fill="#378ADD"/>
+<text x="354.3" y="525.5" font-size="10" fill="#888" dominant-baseline="central">6.5</text>
+<text x="356.3" y="545.5" font-size="11" font-weight="600" fill="#888" dominant-baseline="central">6.5</text>
+<line x1="160" y1="88" x2="690" y2="564" stroke="#ccc" stroke-width="1"/>
+</svg>
