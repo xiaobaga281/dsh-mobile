@@ -1,5 +1,65 @@
 # 更新日志（Changelog）
 
+## 0.2.1-rc.117（versionCode 116）· 2026-10-27
+
+> 注：本版推翻 rc.115 对「PaX/grsecurity」的判断——真机复核证明内核是标准
+> Android 6.12（无 PaX），报错里的 grsecurity/PaX 只是 HotSpot 对「拿不到可执行
+> 内存」的通用提示。真正的机制见下。
+
+### 手机内造 App 的 JVM 启动失败（执行内存拒绝）根治
+
+- **现象**：app_build 守护进程连续 5 次同一报错
+  `Error occurred during initialization of VM` +
+  `Failed to mark memory page as executable - check if grsecurity/PaX is enabled`。
+  paxctl 豁免、setarch -R、压代码缓存、`-Xint` 全部无效。
+- **定位（真机实测，非猜测）**：
+  - 排除 seccomp：app 策略里没有 mprotect 条目，同进程 ART JIT 一直正常工作；
+  - 排除 SELinux：`untrusted_app_27` 明文 allow execmem/execmod（targetSdk 28 的选型原因）；
+  - 用 LD_PRELOAD 钩子抓到现场：`mprotect(4096, prot=7) = -1 errno=13`，目标是
+    一段 **rw-p（已写过）** 的匿名映射。判别实验定出该内核的规则：
+    **mmap 时带 X 放行、未写过的页加 X 放行、已写过的页加 X 拒绝**。HotSpot 提交
+    代码缓存恰好踩第三条，所以 100% 确定性失败。
+- **修法（execfix shim）**：mprotect 失败且目标含 `PROT_EXEC` 时，用
+  `mmap(addr, len, prot, MAP_FIXED|ANON|NORESERVE)` 在同一地址重新映射——属于
+  「mmap 时带 X」，策略放行；目标页是空的新提交页，清零无损。普通设备 mprotect
+  从不失败，零副作用。
+- **判据不按 errno 硬编码**：同一条拒绝，本机报 `EACCES(13)`，别的内核可能报
+  `EPERM(1)`；只判「失败 + 目标含 PROT_EXEC」，errno 仅用于日志与失败时回填。
+- **落地细节（几处坑都踩过并修掉）**：
+  - C 源码随包内置（自包含、零 `#include`）——rootfs 镜像只有 gcc 与 crt/libc.so，
+    **没有 musl 的 C 头文件**，带 include 的版本在干净设备上编译必败；
+  - **rootfs 就绪即预热编译**（`/usr/lib/libdshexecfix.so`）：终端会话入口是
+    `/bin/sh`，靠「java 入口」触发的懒编译在终端里永远不会发生；
+  - **LD_PRELOAD 只走 guest 侧**（`sh -c 'export LD_PRELOAD=…; exec "$@"'`）：
+    放进宿主环境会让 proot 本体（bionic）找不到 rootfs 内路径，proot 直接起不来；
+  - 顺带安装 `/usr/local/bin/{java,javac}` 包装，让终端里敲 `java` 也走 shim
+    （app 内部用绝对路径，不受影响）；
+  - **shim 版本戳**（`usr/lib/.libdshexecfix.stamp`）：shim 编在 rootfs 里跨升级
+    保留，版本号变了就删旧重编，避免复用坏 .so。
+- **诊断能力**：新增「执行内存探针」（python3 + ctypes，经与 JVM 同一条 proot 管线
+  执行，同 seccomp/SELinux 上下文），JVM 确定性失败时自动给出判决——只禁 mprotect
+  翻转（OEM W^X）/ 可执行内存整体禁掉 / 执行内存没问题（另有原因）；结果按实例
+  缓存，并随 build 失败文案一起回给用户，不再让人猜。
+
+### 自动交付不再把工程内资源当交付物
+
+- **现象**：用 app_new 建 Android 工程后，弹出一张「5 个 png」的交付卡（`auto:true`），
+  内容是脚手架自动生成的 `res/mipmap-*` 各密度 `ic_launcher.png`——用户并没有要求
+  交付这些东西，看起来像 agent 交付错了。
+- **机制**：本轮没有任何显式 `present` 时，平台会按扩展名扫工作区本轮新写的文件做
+  兜底交付（照顾小参数模型忘记 present），工程资源因此被误捞。
+- **修法**：新增「工程内文件」判定——文件祖先目录里出现项目清单
+  （`AndroidManifest.xml` / `build.gradle(.kts)` / `package.json` / `Cargo.toml` /
+  `pom.xml` / `go.mod` / `pyproject.toml` / `Makefile` …）即视为工程源/资源，排除出
+  兜底扫描。显式 `present` 完全不受影响。
+
+### 测试
+
+- 单测 410 → **432** 全绿（探针解析/判词、execfix 源码完整性、零 include 断言、
+  禁止 errno 硬编码断言、工程内文件判定）。
+
+---
+
 ## 0.2.1-rc.116（versionCode 115）· 2026-10-27
 
 ### 英语界面残留中文补齐（i18n 全量修复）
