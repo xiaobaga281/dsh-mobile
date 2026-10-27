@@ -103,6 +103,7 @@ dsh plugin --profile <profile名> add "github:xiaobaga281/dsh-mobile#path:deskto
 
 - [docs/score-v4-v5.md](docs/score-v4-v5.md) —— rc.111 → rc.112 九域六维进步表（全局 7.4 → 7.8）
 - [docs/fixes-rc113.md](docs/fixes-rc113.md) —— rc.113 五项修复清单（附实测）
+- [docs/fixes-rc114-115.md](docs/fixes-rc114-115.md) —— rc.114/rc.115 修复清单（PaX W^X 根治 + 滚动定位 + 授权档位）
 
 ## 系统要求
 
@@ -119,13 +120,14 @@ dsh plugin --profile <profile名> add "github:xiaobaga281/dsh-mobile#path:deskto
 
 ## 版本
 
-当前发布版本：**0.2.1-rc.113**，见 [Releases](../../releases)；逐版本变更见 [CHANGELOG.md](CHANGELOG.md)。
+当前发布版本：**0.2.1-rc.115**，见 [Releases](../../releases)；逐版本变更见 [CHANGELOG.md](CHANGELOG.md)。
 
-近期亮点（rc.111 – rc.113）：
+近期亮点（rc.111 – rc.115）：
 - **手机内造 App 全链路**：脚手架 → 打包（2 秒级热构建）→ 专属签名 → 安装
 - **终端双后端**：rootfs 完整环境（java/python3/gcc/node/git）+ 安卓宿主 shell
-- **ABI 分包**：安装包 346MB → 226MB
-- **流式与稳定性**：合批统一 40ms 节拍、渲染进程回收后自动接回、语音消息排队不丢失
+- **PaX/W^X 内核兼容根治**：签名改宿主内自签（rc.113）+ JVM 启动器 paxctl 豁免补丁（rc.115），grsecurity 加固内核上 app_build 不再反复失败
+- **ABI 分包**：完整版安装包 346MB → 237MB
+- **流式与交互**：合批统一 40ms 节拍、渲染进程回收后自动接回、语音消息排队不丢失、发送/重进会话精准贴底、授权「始终允许」真实生效
 
 ## 许可
 
