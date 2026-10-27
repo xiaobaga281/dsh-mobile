@@ -1,5 +1,69 @@
 # 更新日志（Changelog）
 
+## 0.2.1-rc.115（versionCode 114）· 2026-10-27
+
+### PaX W^X 确定性拒绝根治（paxctl 豁免补丁）
+
+- **根因修正**：部分机型的 app_build 守护进程报「连续 5 次同一拒绝
+  （Failed to mark memory page as executable）」——这不是 rc.114 判断的「地址随机化
+  抖动」，而是内核 grsecurity/PaX 的 MPROTECT（W^X）策略**确定性拒绝**：普通进程
+  不允许把「先写后执行」的内存页改成可执行，JVM 初始化必经的 `mprotect(PROT_EXEC)`
+  被内核直接拒绝。proot 只拦 syscall、`setarch -R` 只去随机化，都动不了内核策略。
+- **根治：paxctl 豁免补丁**（`paxctl -c -m -r` 的等价 ELF64 实现，位运算逐位对齐
+  paxctl 0.9）：给 JVM 启动器的 `PT_PAX_FLAGS` 段清除 MPROTECT / RANDMMAP 限制
+  （二进制没有该段时由 `PT_GNU_STACK` 转换而来）——这是 Debian 时代在 grsec 内核上
+  跑 OpenJDK 的同一官方做法。启动器文件在我们自己的 rootfs 里，宿主进程可直接改写，
+  **无需 root**。rootfs 就绪时自动幂等应用，headless JDK 全部 6 个启动器覆盖；
+  app_build 守护进程、编译、终端裸 java 全走补丁后的启动器。
+- **两层防御**：`setarch -R` 层保留（模拟器 A/B 实证：无 -R 时 8/10 过、加 -R 后
+  10/10，消除 ASLR 布局竞态）；paxctl 层处理 PaX 内核的确定性 W^X 拒绝。
+  补丁安全性已验证：位级单测 7 例 + 补丁后真二进制在 proot 下 10/10 正常启动。
+- **若补丁后仍报同样错误**：说明该内核是 grsec **硬模式**（不读 PT_PAX_FLAGS，
+  按文件豁免被忽略），用户态无解——只能 root 豁免或换非 PaX 内核。
+  错误指引文案已同步更新，会把这一点直接说明给模型与用户。
+
+---
+
+## 0.2.1-rc.114（versionCode 113）· 2026-10-27
+
+> 注：本版对 PaX 的判断（「地址随机化抖动」）后被 rc.115 修正——真机上是确定性
+> W^X 策略拒绝；本版的 setarch 补丁在 rc.115 中保留为抖动成分的防御层。
+
+### PaX：setarch 增量补丁（抖动成分）
+
+- rc.113 的宿主自签只根除了 keytool 一条路径，终端/编译里的裸 JVM 仍会抖。
+  机制与实证：proot 转译下 `mprotect(PROT_EXEC)` 在地址随机化下间歇性失败；
+  `setarch -R`（ADDR_NO_RANDOMIZE）禁随机化后稳定成功。把 util-linux setarch
+  （约 19KB，musl 动态链接）做成 rootfs 增量补丁（jniLibs `libdshsetarch.so`，
+  按 ABI 双份，与 git 补丁同一套幂等解包机制）。镜像自带的 setarch 是 busybox
+  链接而 busybox 未编译该 applet（实测 "setarch: applet not found"）。
+  接入点：`openGuest` / `guestExec` / `exec` 的 JVM 入口统一加 `-R` 前缀。
+
+### 对话流滚动定位三处修复
+
+- 新增 `pinBottom()`：逐帧校验直到贴底稳住，扛住页面切换动画 / 键盘 / 图片晚加载
+  导致的「写入时刻 scrollHeight 已过时」。
+- 发送消息强制回底：跟随标记在重建前置位——此前可能为 false，重建走「还原 prevTop」
+  分支把视口拉回历史位置，即「一发消息就跳回历史」。
+- 重进 / 切换会话统一走 `pinBottom(1200)`：进入对话页直接停在最新消息处。
+
+### 完全访问立即生效 + 授权档位真实化
+
+- 权限档位热更新：设置页改动即时下发运行中的轮次，门禁每批读 live 值，不再等下一轮；
+  完全访问下危险操作确认直接跳过。
+- 「始终允许」改为真实档位（once / always / deny）：always 记会话级授权，同会话同名
+  工具不再重复弹框——此前「始终允许」只回传布尔，与允许一次完全等价。
+- 终止对话后未决授权框立即结算：按钮隐藏 + 「已终止 · 本次确认无效」，点击侧也拦截
+  已结束轮次的确认。
+
+### phone_list_apps 只返回自身包名
+
+- 真因是 Android 11+ 包可见性过滤（manifest 缺 `QUERY_ALL_PACKAGES`，
+  `getInstalledApplications` 只剩自己），不是 proot——PhoneControlService 跑在宿主
+  AccessibilityService 里从未进过沙箱。补权限后恢复正常。
+
+---
+
 ## 0.2.1-rc.113（versionCode 112）· 2026-10-26
 
 本版修复五类问题，全部附实测。签名体系有**一次不兼容变更**，见最后一条。
