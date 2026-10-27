@@ -2,42 +2,33 @@
 
 ## 0.2.1-rc.115（versionCode 114）· 2026-10-27
 
-### PaX W^X 确定性拒绝根治（paxctl 豁免补丁）
+> 注：本版合并了原 rc.114 的全部修复。对 PaX 的判断在 rc.115 内被进一步修正——
+> 真机上是内核 W^X 策略的**确定性拒绝**，setarch 补丁保留为抖动成分的防御层。
+
+### PaX W^X 拒绝根治（paxctl 豁免补丁 + setarch 双层防御）
 
 - **根因修正**：部分机型的 app_build 守护进程报「连续 5 次同一拒绝
-  （Failed to mark memory page as executable）」——这不是 rc.114 判断的「地址随机化
-  抖动」，而是内核 grsecurity/PaX 的 MPROTECT（W^X）策略**确定性拒绝**：普通进程
-  不允许把「先写后执行」的内存页改成可执行，JVM 初始化必经的 `mprotect(PROT_EXEC)`
-  被内核直接拒绝。proot 只拦 syscall、`setarch -R` 只去随机化，都动不了内核策略。
+  （Failed to mark memory page as executable）」——这是内核 grsecurity/PaX 的
+  MPROTECT（W^X）策略**确定性拒绝**：普通进程不允许把「先写后执行」的内存页改成
+  可执行，JVM 初始化必经的 `mprotect(PROT_EXEC)` 被内核直接拒绝。proot 只拦
+  syscall、`setarch -R` 只去随机化，都动不了内核策略。
 - **根治：paxctl 豁免补丁**（`paxctl -c -m -r` 的等价 ELF64 实现，位运算逐位对齐
   paxctl 0.9）：给 JVM 启动器的 `PT_PAX_FLAGS` 段清除 MPROTECT / RANDMMAP 限制
   （二进制没有该段时由 `PT_GNU_STACK` 转换而来）——这是 Debian 时代在 grsec 内核上
   跑 OpenJDK 的同一官方做法。启动器文件在我们自己的 rootfs 里，宿主进程可直接改写，
   **无需 root**。rootfs 就绪时自动幂等应用，headless JDK 全部 6 个启动器覆盖；
   app_build 守护进程、编译、终端裸 java 全走补丁后的启动器。
-- **两层防御**：`setarch -R` 层保留（模拟器 A/B 实证：无 -R 时 8/10 过、加 -R 后
-  10/10，消除 ASLR 布局竞态）；paxctl 层处理 PaX 内核的确定性 W^X 拒绝。
-  补丁安全性已验证：位级单测 7 例 + 补丁后真二进制在 proot 下 10/10 正常启动。
+- **setarch 增量补丁（抖动成分）**：proot 转译下 `mprotect(PROT_EXEC)` 在地址
+  随机化下仍会间歇性失败（模拟器 A/B 实证：无 -R 时 8/10 过、加 -R 后 10/10），
+  消除 ASLR 布局竞态。把 util-linux setarch（约 19KB，musl 动态链接）做成 rootfs
+  增量补丁（jniLibs `libdshsetarch.so`，按 ABI 双份，与 git 补丁同一套幂等解包
+  机制）。镜像自带的 setarch 是 busybox 链接而 busybox 未编译该 applet（实测
+  "setarch: applet not found"）。接入点：`openGuest` / `guestExec` / `exec` 的
+  JVM 入口统一加 `-R` 前缀。补丁安全性已验证：位级单测 7 例 + 补丁后真二进制在
+  proot 下 10/10 正常启动。
 - **若补丁后仍报同样错误**：说明该内核是 grsec **硬模式**（不读 PT_PAX_FLAGS，
   按文件豁免被忽略），用户态无解——只能 root 豁免或换非 PaX 内核。
   错误指引文案已同步更新，会把这一点直接说明给模型与用户。
-
----
-
-## 0.2.1-rc.114（versionCode 113）· 2026-10-27
-
-> 注：本版对 PaX 的判断（「地址随机化抖动」）后被 rc.115 修正——真机上是确定性
-> W^X 策略拒绝；本版的 setarch 补丁在 rc.115 中保留为抖动成分的防御层。
-
-### PaX：setarch 增量补丁（抖动成分）
-
-- rc.113 的宿主自签只根除了 keytool 一条路径，终端/编译里的裸 JVM 仍会抖。
-  机制与实证：proot 转译下 `mprotect(PROT_EXEC)` 在地址随机化下间歇性失败；
-  `setarch -R`（ADDR_NO_RANDOMIZE）禁随机化后稳定成功。把 util-linux setarch
-  （约 19KB，musl 动态链接）做成 rootfs 增量补丁（jniLibs `libdshsetarch.so`，
-  按 ABI 双份，与 git 补丁同一套幂等解包机制）。镜像自带的 setarch 是 busybox
-  链接而 busybox 未编译该 applet（实测 "setarch: applet not found"）。
-  接入点：`openGuest` / `guestExec` / `exec` 的 JVM 入口统一加 `-R` 前缀。
 
 ### 对话流滚动定位三处修复
 
