@@ -1,5 +1,55 @@
 # 更新日志（Changelog）
 
+## 0.2.1-rc.131（versionCode 131）· 2026-10-28
+
+### 陪伴保活通知改有声，去掉「只是保活，不响铃」
+
+- **现象**：陪伴式畅聊的通知没有声音，通知上还写着「这里只是保活，不响铃」。
+- **根因**：保活前台通知走 `dsh_companion_keep` 通道，`IMPORTANCE_MIN` + `setSound(null)` +
+  `enableVibration(false)` + 通知 `setSilent(true)` + `PRIORITY_MIN`，被系统收进「静默」区。
+  （「陪伴开口」的通知走另一条 `IMPORTANCE_HIGH` 通道，本来有声。）
+- **修法**：通道换新 ID `dsh_companion_keep_v2`（**Android 不允许修改已创建通道的重要性**，
+  旧 MIN 通道改不动，只能换新 ID）→ `IMPORTANCE_DEFAULT`，去掉 `setSound(null)` /
+  `enableVibration(false)`；通知去掉 `setSilent(true)`、`PRIORITY_MIN` → `PRIORITY_DEFAULT`；
+  文案改为「到点它会主动开口，陪你聊两句」；另加 `setOnlyAlertOnce(true)`，常驻通知随在跑
+  名单更新时不反复响。
+
+---
+
+## 0.2.1-rc.130（versionCode 130）· 2026-10-28
+
+### 会话堆叠「中间层又长又厚」修正
+
+- **现象**：工作区堆叠卡片底下那层几乎和主卡同宽、露出很厚，像一条白带。
+- **根因**：`.ws-group.is-stacked::before` 只缩进 6px（宽度 ≈ 主卡），并沿用 16px 大圆角；
+  再叠上 `brightness(.96)` 的偏亮白 → 浅色页面上就是一条又长又厚的弧带，读不出「纸边」。
+- **修法**：缩进 6px → 12px（第二层 16 → 24px），圆角 16 → 12px，亮度 .96/.90 → .93/.86，
+  露出高度 6/11px → 5/9px，阴影同步减轻。叠层收窄变薄后是清楚的「还压着一张」。
+  （注：堆叠卡片是手机端独有，电脑端没有对应实现。）
+
+---
+
+## 0.2.1-rc.129（versionCode 129）· 2026-10-28
+
+### 修复流式输出截断 / 顺序错乱 / 字面量 null
+
+- **现象**：Agent 回复与分析都被截断、思考和正文穿插顺序错乱，偶尔整段只输出 `null`。
+- **根因（对照电脑端定位）**：
+  1. `StreamFlusher` 用两个 `StringBuilder` 分别攒 text / think，flush 时固定「先 think 后
+     text」→ 交替序列 `思考A→正文B→思考C` 被重排成 `思考A+C→正文B`，前端看起来就是穿插被截断。
+     （电脑端传输层是**逐条保序**、合帧只在渲染侧。）
+  2. 桥侧 `StreamCoalescer.flushAll` 的 `send` 在锁外，agent 线程与主线程 tick 并发 flush 时
+     `webView.post` 投递乱序。
+- **修法（对齐电脑端「传输层严格保序」）**：`StreamFlusher` 重写为**单段队列**（同类型连续合并、
+  类型切换新开段），flush **按入队序回放**；`StreamCoalescer.flushAll` 的 `send` 移入同步块串行；
+  前端 `paintLiveText` 补 `generation` 自愈（非追加输入全量重建，对齐电脑端 `IncrementalMarkdownParser`）。
+- **`null`**：部分端点把 JSON null 序列化成**字符串 `"null"`**，原 `isNull()` 检查放不过它；
+  `LlmClient` 与 `MessagesApi` 对 `content`/`reasoning_content` 值为 `"null"` 一律跳过。
+- **验证**：本地 mock SSE 按「思考→正文→思考→正文→思考」吐块，界面渲染顺序与到达顺序一致
+  （逐段穿插），不再聚集/错位。
+
+---
+
 ## 0.2.1-rc.128（versionCode 128）· 2026-10-28
 
 ### 修复新建会话后对话页透出会话页（rc.127 回归）
