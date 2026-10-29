@@ -1,5 +1,25 @@
 # 更新日志（Changelog）
 
+## 0.2.1-rc.142（versionCode 142）· 2026-10-29
+
+### 去掉网页里那套模拟状态栏（冷启动会露出来）
+
+- **现象**：冷启动时应用顶部出现一条**自绘状态栏**（`9:41` + 信号 / WiFi / 电池图标）。
+- **根因**：`index.html` 里还留着一套「模拟 iPhone 外壳」——`.statusbar`（假状态栏）和
+  `.island`（黑胶囊），只靠 `html.native .statusbar { display:none }` 隐藏；而 `html.native`
+  这个类要等 `app.js` 初始化时（原第 14710 行）才加上 —— **冷启动第一帧必然露出它**，
+  JS 一旦报错还会一直露着。
+- **修法**：直接删干净，而不是继续靠运行时加类去遮：
+  · `index.html` 删掉 `.statusbar`（含 4 个图标 SVG）与 `.island`；
+  · `styles.css` 删掉 `.statusbar` / `.sb-right` / `.sb-ico` / `.sb-batt` / `.island` 及其
+    `html.native` 覆盖规则，只保留 `html.native { --safe-top: 32px }`（原生壳给的顶部安全区）；
+  · `app.js` 删掉每 30 秒更新 `#sbTime` 的定时器，`nowTime()` 随之成为死代码，一并删除
+    （否则 `$("#sbTime").textContent` 会在元素不存在后抛错）。
+- **验证**：无头 Edge 打开首页，`.statusbar` / `.island` / `#sbTime` 均不存在，顶部为干净留白，
+  标题/搜索/列表/底部标签栏布局正常，`--safe-top` 仍生效（浏览器 54px、native 壳 32px）。
+
+---
+
 ## 0.2.1-rc.141（versionCode 141）· 2026-10-29
 
 ### 修：「需要你确认」通知在应用内处理后不消失
