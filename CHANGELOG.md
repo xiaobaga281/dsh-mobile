@@ -1,5 +1,171 @@
 # 更新日志（Changelog）
 
+## 0.2.1-rc.150（versionCode 150）· 2026-10-29
+
+### 修：会话页冷启动闪一下空的「置顶 / 工作区」
+
+零会话冷启动时，会话页会先闪出「置顶」「工作区」两个空分组再消失。
+
+两处叠加导致：
+
+- `#pinnedSection` / `#wsSection` 是「有数据才存在」的分组，但标记里默认可见，
+  真正的隐藏逻辑写在 `renderSessions()` 里；
+- `renderSessions()` 要等 `DOMContentLoaded → init()` 才跑，而 WebView 的首帧在这之前就画了 ——
+  画的是静态骨架，于是两个空标题先露一下，再被 JS 收走。
+
+修法：
+
+- 两个条件分组在标记里就 `display:none`，由 `renderSessions()` 按实际条数放出来
+  （置顶 0 条、工作区 0 个仍不占位）；
+- 会话页加 `.pre-boot`，列表区在首版算完之前 `visibility:hidden`（不用 `display:none`，
+  避免摘掉时整页跳动），`init()` 里 `try { renderSessions() } finally { 摘掉 }` ——
+  万一渲染抛错，也不会把会话页永久留成空白。
+
+验证：冷启动录屏抽帧（10fps / 3.7s）全程无「置顶 / 工作区」；零会话只剩「最近 · 暂无会话」；
+带数据时置顶 1 条 + 工作区 1 组 + 最近 1 条均正常显示。
+
+---
+
+## 0.2.1-rc.149（versionCode 149）· 2026-10-29
+
+### 修：检查更新点下去只弹「当前版本不支持检查更新」
+
+功能本身是好的 —— **前端没有登记这个原生网关**。
+
+- 原生在 `NativeBridge.domains` 里注册了 `DSHNativeUpdate`，但网页的 `NATIVE_DOMAINS`
+  白名单是手写数组，rc.146 加桥时漏了一行，于是 `Native.updateState` 恒为 `undefined`，
+  `openUpdateSheet` 第一句判空就把用户挡在门外（一块功能整块哑掉，还没有任何报错）。
+- 修法不是「补一行」：白名单现在只表示**优先级**，脚本启动时把任何没列到的 `DSHNative*`
+  注入对象自动追加在后面 —— 同名方法仍以先列者为准，但**新增桥不必再改这里**，
+  不会再因为漏登记让一块功能静默消失。
+- 前车之鉴同 rc.119（清单里的 `android:name` 写错同样静默失败）：凡是「手写清单 + 静默降级」
+  的组合，都要么加断言、要么改成自动发现。
+
+### 修：「完成后通知」开关之前是装饰品
+
+它只写了 `localStorage`，原生侧（`RunService.finish`）从来没读过 —— 无论开关怎么拨，
+「已完成」通知都照发。
+
+- 偏好收口到顶层 `AppPrefs`（文件 `dsh`）：`bridge` 与 `notify` 都要读它，挂在任何一边都会让包
+  依赖成环；顺手把原 `BridgePrefs` 并进去，全进程只留一个 `SharedPreferences` 实例
+  （Activity context 与 application context 各拿一份会互不同步，这条坑以前踩过）。
+- `NotifyBridge.setNotifyDone/notifyDoneEnabled` + `RunService.finish` 三个条件同时判定：
+  不在前台、不是用户主动停止、**开关为开**。「执行失败」与「需要你确认」不受开关约束 ——
+  它们属于待处理事项，关掉完成提醒的人也不希望任务悄悄挂掉。
+- 打开开关时当场核对系统通知是否被关掉（`notifyInfo().notificationsEnabled`），没授权就直说
+  发不出来 —— 否则又是一个「开了却没反应」。
+
+### 「危险操作前询问」判定收口
+
+链路本身是通的（`askDanger → needConfirm → Gate.confirmDanger → approval_request` 卡片），
+但判定逻辑埋在 pipeline 的 waterfall 里，只能靠跑真模型回合验证。现在抽成纯函数
+`DangerGuard.reason(name, args)`：
+
+- 破坏性动词按 POSIX / Windows 两套正则分开（原来漏了 Windows 侧的 `Remove-Item` 一族）；
+- **有意不剥离引号内容**：`sh -c "rm -rf /"` 是最危险的一类，剥引号会把它放过去；
+- 新增 `DangerGuardTest`（6 个用例）钉住「开关关 = 判都不判」「完全授权下开关不生效」
+  「日常命令不打扰」，不必再靠真机跑一轮对话验证。
+
+**顺手修红灯**：`CompanionEngine` 在 `object` 初始化里就 `Handler(Looper.getMainLooper())`，
+JVM 单测（无 Looper）一碰这个类就 `ExceptionInInitializerError`，整份 `CompanionEngineTest`
+11 个用例常年全红 —— 门禁一红就没人看。改成 `by lazy` 后全量单测 451 项转绿。
+
+---
+
+## 0.2.1-rc.148（versionCode 148）· 2026-10-29
+
+### 更新下载改为后台进行（前台服务 + 完成即进安装页）
+
+点「立即更新」后用户十有八九会切走（几百 MB 要好几分钟）。以前下载跑在桥的普通后台线程里，
+进程被回收就断在半截，而且没有任何可见反馈。
+
+- **前台服务 `UpdateService`**：`startForeground` 钉住进程，通知栏显示实时进度
+  （`正在下载新版本 46%` + 来源 `ghfast.top`）。切到别的应用、锁屏都继续下。
+- **下载完成后自动进安装页**，两条路各管一种场景：
+  · **App 在前台**：服务推 `ready` → 前端 `DSHHost.onUpdate` 里直接 `updateInstall()` → 安装器弹出；
+  · **App 在后台**：通知换成「下载完成 · 点此安装」，其 `contentIntent` 就是一个指向系统安装器的
+    `PendingIntent` —— 用户点击那一刻属于前台交互，不受 Android 10+ 后台启动 Activity 的限制，
+    所以不用先回 App 再跳一次。
+- **状态总线 `UpdateBus`**：服务可能比 WebView 活得久（后台下载正是这么用的），
+  所以不让服务依赖桥 —— 服务往总线里塞状态，桥在 `init` 里挂 listener 转成 `onUpdate`。
+  App 被杀时 listener 为 null，只走通知栏。
+- 服务用 `foregroundServiceType="specialUse"`（与项目里另外三个常驻服务一致），
+  通知小图标统一 `R.drawable.ic_notify`（不用 launcher 图标，那在通知栏会显示成白块）。
+- 浮窗里 `ready` 态补了「安装」按钮：重开浮窗看到的是同一个状态，手动点一下即可。
+
+---
+
+## 0.2.1-rc.147（versionCode 147）· 2026-10-29
+
+### 更新源实测校正：镜像按速度排序 + 修 API 回退失效
+
+用真实资产地址逐源实测（本机，取前 2MB）：
+
+| 源 | 2MB 耗时 | 速度 | 处理 |
+|---|---|---|---|
+| `ghfast.top` | 9.3s | ≈225 KB/s | 排第一 |
+| `gh-proxy.com` | 19.9s | ≈105 KB/s | 排第二 |
+| `ghproxy.net` | 40s 超时 | ≈11 KB/s | **移出列表**（与官方同档，白等一轮） |
+| 官方 github.com | 40s 超时 | ≈14 KB/s | 只作保底 |
+
+- **修一个会直接让「检查更新」失败的问题**：`releases/latest` 也走了「镜像优先」，而这些代理
+  对 `api.github.com` 常回一个 **200 的 HTML 错误页** —— 旧代码只判 HTTP 状态码，把 HTML 当结果
+  返回，外层 JSON 解析一炸就整次失败，且**不会回退到官方**。现在：
+  · API **官方优先**（只有几 KB，代理反而不支持）；
+  · `httpGetFirst` 增加「首字符必须是 `{` / `[`」的校验，不合格就继续试下一个地址。
+- **源名称改由原生给**：`UpdateCenter.sourceLabel(idx)` 把序号翻成 `ghfast.top` / `GitHub 官方`
+  再推给前端。以前前端按 `src > 3` 猜，镜像增删一次就错位一次。
+- 下载侧的两道校验保持：HTTP 2xx + 首字节 `PK\x03\x04`（挡镜像的 HTML 错误页）。
+
+---
+
+## 0.2.1-rc.146（versionCode 146）· 2026-10-29
+
+### 设置页新增「检查更新」：镜像优先、GitHub 保底
+
+没有变化时一个浮窗告知「已是最新版」；有新版显示版本号、包大小与更新说明，
+点「立即更新」开始下载并显示进度，下完自动拉起系统安装器。
+
+- **数据保留**（覆盖安装的前提，两条缺一不可）：
+  · 同 `applicationId` + 同签名原地升级 —— 系统保留 `/data/data/<pkg>`，会话、记忆、设置全在；
+  · 装之前先 `PackageManager` 比对**包名 + 签名**，不一致直接拒绝并说明原因。
+    否则用户会等完几百 MB 才在系统那一步被拒（或者更糟：装成另一个应用、旧数据读不到）。
+- **下载源：镜像优先，GitHub 保底**。直连 `github.com` / `objects.githubusercontent.com`
+  国内常常只有几 KB/s，200 多 MB 的包基本下不完。候选源逐个尝试，浮窗上会显示当前用的是哪个源。
+  每个源都要过两道校验才认：HTTP 2xx + **首字节必须是 `PK\x03\x04`**（APK 是 ZIP）——
+  镜像挂掉时经常返回一个 200 的 HTML 错误页，不校验就会白下几百 MB 垃圾。
+- **线程模型**：`@JavascriptInterface` 跑在 JS 线程，网络/写盘一律丢到单独的 `dsh-update` 线程；
+  三个入口（check / download / install）都立即返回，状态经 `window.DSHHost.onUpdate` 推回前端，
+  浮窗只重画 `#upBody` 一块（整表重开会随进度不停闪）。
+- **UI（改过一版）**：第一版做成「圆形图标 + 居中标题 + 灰底说明卡片」，太花、像广告弹窗，删掉重做。
+  现在只有：一行标题（`发现新版本 rc.146`）+ 一行小字（当前版本 / 包大小）+ 两个按钮；
+  下载态是一条 6px 进度条。**不做图标块、不做灰底说明区，也不再显示 Release 正文**
+  （那是一大段 changelog，小浮窗里只会把按钮挤下去）。设置行图标是新画的**环形箭头**
+  （`i-refresh`），刻意不复用现有的直线箭头类图标。
+
+---
+
+## 0.2.1-rc.145（versionCode 145）· 2026-10-29
+
+### 修：输入框聚焦时冒出「一圈黄边」
+
+用户实测：全局记忆的添加框点进去会冒出一圈**黄色方角描边**。
+
+- **根因**：`.mem-add input` 只写了 `border: 0`，**没清 `outline`**。Android WebView 在聚焦时
+  会画系统默认聚焦环，而部分定制 ROM（荣耀/华为等）用它自己的**主题色**——实测是黄色；
+  这个环还是**方角**的，套在 22px/25px 圆角的胶囊里非常突兀。
+- **而且**：输入框是透明底 + 无边框，外层胶囊也没有任何聚焦反馈 —— 就算没有黄环，
+  用户点了输入框也看不出「现在在哪儿输入」。
+- **修法**：
+  · `input, textarea, select { outline: none }` 全局清掉系统聚焦环（含 `:focus-visible`）；
+  · `.mem-add:focus-within` 给**整条胶囊**加一圈蓝环（`rgba(0,122,255,.28)`，与 iOS 蓝一致），
+    聚焦反馈的形状跟着胶囊走，不再有方角；
+  · 记忆条目的编辑框 `.mem-input` 同样清 outline，聚焦时用 `box-shadow` 蓝环（形状随 11px 圆角）；
+  · 补 `:-webkit-autofill` 覆盖：部分 ROM 判定「可填充」时会给输入框染黄底/黄边，
+    统一压平为卡片色 + 主题文字色。
+
+---
+
 ## 0.2.1-rc.144（versionCode 144）· 2026-10-29
 
 ### 设置项改名：「查看系统提示词」→「查看用户提示词」
