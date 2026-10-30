@@ -1376,6 +1376,21 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.166（versionCode 166）· 2026-10-31 · write_docx 支持嵌入工作区图片
+
+**write_docx 图片嵌入**。正文里写一行 `![](工作区图片相对路径)`（png/jpg/gif），生成时解析成
+Word 原生 inline 图片：media part + 关系 + drawing（EMU 按 5.5 英寸宽上限、真实像素比缩放），
+PNG/GIF 头与 JPEG SOF 扫描读尺寸；解析不到/超 8MB 的图降级为「图片缺失」说明段——
+文档永远生成得出来。write_docx 从此能交付**带截图/带图表的报告**，不再只能纯文字。
+
+两处平台差异实测踩过并修掉：① Android 的 java.util.regex 拒绝未转义的 `}`
+（OpenJDK 容忍，桌面 JVM 测试全绿、设备上 PatternSyntaxException）——`{{DSH_IMG:\d+}}`
+改为 `\{\{DSH_IMG:\d+\}\}`；② 图片字节的 zip 条目必须走二进制通道，String put 会按
+UTF-8 把字节打碎。图片缺失降级与嵌入路径各有 JVM 测试（DocWriterTest +2）。
+
+单测 474 → **476 全绿**。设备实测：真实 64x40 PNG 经 ![](real.png) 嵌入，
+docx 内 `word/media/image1.png` + 1 个 drawing，模型回报 images=1。
+
 ### rc.165（versionCode 165）· 2026-10-31 · 生成模型工具参数对齐端点能力（视频图生图 + 图像编辑与质量档）
 
 用户实测反馈「有些生成不了，因为给模型的参数太少」。逐个对照 OpenAI 兼容端点的真实 wire 形态补齐：
