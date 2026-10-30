@@ -1376,7 +1376,18 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
-### rc.166（versionCode 166）· 2026-10-31 · write_docx 支持嵌入工作区图片
+### rc.167（versionCode 167）· 2026-10-31 · video_generate 显式 mode 参数 + 只读工具并发声明
+
+**video_generate 补 `mode` 参数**（auto / text2video / image2video）。此前「文生 vs 图生」由
+image_path 在场与否隐式推断——wire 形态对了，但 schema 不自解释。现在：显式声明模式；
+image2video 缺参考图在创建请求**前**被拦截（`mode=image2video 需要参考图：请给 image_path`），
+不再走进端点黑盒。实测走真实 Agent 轮验证拦截与错误上报。
+
+**13 个只读工具补 `executionMode = PARALLEL`**：memory_search/memory_list、
+session_event_read/search/trace、session_search/trace、schedule_list、plugin_spec/plugin_list、
+device_info、sticker_list——批量读取轮次进并发池，不再串行排队。
+
+单测 476 全绿。### rc.166（versionCode 166）· 2026-10-31 · write_docx 支持嵌入工作区图片
 
 **write_docx 图片嵌入**。正文里写一行 `![](工作区图片相对路径)`（png/jpg/gif），生成时解析成
 Word 原生 inline 图片：media part + 关系 + drawing（EMU 按 5.5 英寸宽上限、真实像素比缩放），
