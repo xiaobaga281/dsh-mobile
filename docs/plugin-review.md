@@ -109,3 +109,11 @@
 | 文生图 | JSON /images/generations（quality/model） | ✓ |
 | 图生图 | multipart /images/edits（端点尾段自动推导） | ✓ |
 | 400 错误 | 可行动提示（时长/分辨率/模型/参考图各一句「怎么改」） | ✓ |
+
+## 8. write_docx 图片嵌入（2026-10-31，随 rc.166）
+
+`![](工作区图片相对路径)` 行（png/jpg/gif）→ Word 原生 inline 图片：media part + 关系 +
+drawing（EMU 缩放，5.5 英寸宽上限），尺寸读取支持 PNG/GIF 头与 JPEG SOF 扫描；
+解析不到/超 8MB 降级为说明段。**两处平台差异实测踩过**：Android regex 拒绝未转义 `}`
+（OpenJDK 容忍）；图片 zip 条目必须走二进制通道。设备实测：真实 PNG 嵌入，
+docx 内 word/media/image1.png + 1 个 drawing，模型回报 images=1。
