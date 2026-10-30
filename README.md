@@ -1376,6 +1376,28 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.168（versionCode 168）· 2026-10-31 · 文档富化（超链接/斜体/删除线/嵌套列表）+ schemas 缓存 + 流式光标移除 + 玻璃降级补齐
+
+**write_docx 富文本**。Markdown 子集从此支持：`[文字](https://…)` **超链接**（外部关系
+TargetMode=External，蓝色下划线可点）、`*斜体*`、`~~删除线~~`、**两级嵌套列表**（前导空格
+每 2 个 = 一层，缩进 360 twips/层，上限 3 层）。所有新特征走真实 Agent 轮在设备上验证：
+富文档.docx 内 w:hyperlink + rIdH1 外部关系 + w:i + w:strike + 嵌套缩进全部就位。
+
+**schemas 缓存（性能）**。自造插件同轮生效引入的「每步重算工具目录」让 154 个 schema 的
+全量裁剪（~100KB JSON 逐条扫描）每步白跑一次。改为按结构变更失效的缓存
+（register/unregister/refreshTools/setEnabled 四个变更点置空），命中时返回同一实例。
+JVM 测试钉住（同实例命中 + 注册新插件后失效）。
+
+**流式光标移除（对齐桌面）**。桌面 ui-chat 的流式输出没有打字光标（streaming prop 只用于
+内容分组）；手机端的蓝色闪烁竖条是自创装饰。attachCaret/removeCaret 函数、3+1 个调用点、
+.caret 样式与 blink 动画全部删除——流式期间 .caret 元素为 0（设备实测）。
+
+**玻璃降级补齐**。回到底部按钮的「材质不是玻璃」：真机 WebView 不支持 backdrop-filter 时，
+项目里 @supports not 降级清单没包含 .to-bottom——0.78 半透明底无模糊=一片死白。
+补进降级清单，退成与输入框一致的实色卡片。
+
+单测 476 → **478 全绿**（+1 富文本、+1 schemas 缓存）。
+
 ### rc.167（versionCode 167）· 2026-10-31 · video_generate 显式 mode 参数 + 只读工具并发声明
 
 **video_generate 补 `mode` 参数**（auto / text2video / image2video）。此前「文生 vs 图生」由
