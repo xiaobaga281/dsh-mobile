@@ -135,3 +135,13 @@ docx 内 word/media/image1.png + 1 个 drawing，模型回报 images=1。
 一轮内同时调用 4 个新声明为并发的只读工具（memory_list / schedule_list / sticker_list /
 device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 2ms**（进同一并发组），
 执行 3–47ms 全部成功——PARALLEL 声明真实生效。会话日志留档（sessions/*.v2.jsonl）。
+
+## 10. 文档富化 + schemas 缓存 + 光标移除（2026-10-31，随 rc.168）
+
+- **write_docx 富文本**：超链接（外部关系）/斜体/删除线/嵌套列表（缩进 360 twips/层）。
+  设备实测五特征齐备。
+- **schemas 缓存**：AgentDriver 每步重算工具目录的成本从「每步 ~100KB 裁剪」降为「缓存命中 +
+  结构变更失效」，JVM 测试钉住同实例命中与注册失效。
+- **流式光标移除**（对齐桌面 ui-chat 无光标）：attachCaret/removeCaret/调用点/样式全删，
+  设备实测流式期间 .caret = 0。
+- **玻璃降级补齐**：.to-bottom 加入 @supports not 清单。
