@@ -1376,6 +1376,57 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.161（versionCode 161）· 2026-10-30 · 搜索命中只高亮当前一处
+
+- 全部命中只做无样式 `<mark>` 包裹（`.hl` 继承原文字色、抹掉 UA 黄底），红色只挂在当前命中 `.hl-on` 上，切换时由 `syncCurMark()` 搬类 —— 不再整片红。
+- 切换命中即 `scrollIntoView({block:"center"})` 滚到对话中部；只改颜色不改字重，避免切换时文本回跳。
+
+### rc.160（versionCode 160）· 2026-10-30 · 搜索只搜正文 + 命中改红 + 浮窗露头修复
+
+- 对话内搜索范围收窄到正文（`.assistant-text` / `.bubble-user`），不再把「已完成，用时」「思考」摘要、「复制·朗读·20.8k tokens」算进命中。
+- 命中字色由绿改红（当前命中更深红 + 更粗），用户蓝气泡内改用浅红保证可读。
+- 底部「露出浮窗顶部」：下拉关闭手势在面板已关时直接 return，手指留下的内联 y 冻在半空 → `sheetHideHard()` 收尾 + 关闭态 `visibility:hidden` 兜底。
+
+### rc.159（versionCode 159）· 2026-10-30 · 对话内搜索高亮去背景
+
+- 搜索命中字符残留 `<mark>` 的 UA 默认黄色背景（截图里的浅绿底），`.hl` 补 `background:none`，只保留字体变绿；当前命中仍用更深的绿 + 加粗区分。
+
+### rc.158（versionCode 158）· 2026-10-30 · 底部悬浮导航栏再下移 6px
+
+rc.157 真机复测通过（等待行回到用户气泡下方）。应视觉要求把底部悬浮导航栏再下移 6px：
+无手势区机型离屏底 20px→14px（`bottom: calc(6px + max(var(--safe-bottom), 8px))`），
+有 safe-bottom 的机型仍按安全区自动让位；语音浮层让位高度同步收到 90px 保持对齐。纯 CSS 改动。
+
+### rc.157（versionCode 157）· 2026-10-30 · 等待行插入顺序修复（真机实锤 rc.156）
+
+rc.156 真机复测抓到的尾巴：发消息后「深度求索中」跑到**用户消息上面**。根因不在等待行本身，
+而在 `renderThread()` 首屏分帧灌入（`requestAnimationFrame`）与 `push()` 同步
+`insertAdjacentHTML("beforeend")` 的竞态 —— renderThread 刚排了 rAF、一帧未执行时
+`#messages` 还是空的，`beginLive → push` 的等待节点先插进空列表，下一帧历史
+（用户气泡）才灌到它后面；且 `fillHead` 按 `thread.length` 灌，同一节点还会被灌两遍。
+
+修复：新增 `appendTail(n)` 统一收口尾部插入（`push` 与 `flowAction` 兜底分支共用）——
+分帧灌未完成时先同步把剩余历史灌完再插新节点，`renderTailFrom` 跟踪灌入进度，
+DOM 顺序永远等于 `thread` 顺序。行为模拟测试（含截图复现时序）通过。
+
+### rc.156（versionCode 156）· 2026-10-30 · 等待态修复 + 底部导航下移
+
+对齐桌面端的两处 UI 修复与一处交互调整，纯 Web 层（assets/web）改动，原生零改动。
+
+**「深度求索中」钉在回复顶部（主修复）**。桌面端 RunningStatus 是独立一行、拼在消息流末尾、
+running 结束整体卸载（ChatFlow.tsx:60）；手机端却把等待行 `innerHTML` 注入流式气泡内部，
+而 `paintLiveText` 增量路径只 append 不重写 —— 正文开始输出后没有任何代码摘掉它，
+就一直钉在回复顶部。修复：`livePaint` 正文首帧先摘 `.runstat` 再画正文
+（`beginLive` / `Flow.newText` 两个注入点全覆盖）。
+
+**电脑会话等待行残留**。`PcRun.stop()` 只删数据节点不重绘，发送失败 catch、
+`onHistory` 静默收摊等无重绘调用点会让「深度求索中」气泡一直挂屏；现在按 `data-uid` 连 DOM 一起删。
+
+**清理与调整**。鲸尾 SVG 路径（WHALE_PATH）在两处各写一遍，抽成共用 `whaleStatHTML(label)`；
+styles.css 删掉旧「三点跳动」死样式 `@keyframes typingBounce`（全仓无引用）；
+底部悬浮导航栏下移 8px（无手势区机型离屏底 28px→20px，有 safe-bottom 机型仍自动让位），
+语音浮层让位高度同步收 8px 保持对齐。preview/ 已同步；`node --check` + 行为模拟测试通过。
+
 ### rc.155（versionCode 155）· 2026-10-30 · 意图路由修复 + 经典男声线更换 + 三处交互修复
 
 本轮是「Harness 对齐审查（docs/harness-review.md）第 1→2 轮」的落地：一个压制模型能力的 P0 修复、
