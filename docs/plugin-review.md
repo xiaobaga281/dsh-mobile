@@ -95,3 +95,17 @@
 | S3 | prompt 字段：JVM 校验测试（合法/空白/非串/超长/段落贡献） | PluginRulesTest 4 项新用例 |
 | S4 | 渲染修复：zip 清单预览 + pdf 段落重排 + 二进制嗅探 | 设备实测 `openWorkspaceFile(bundle.zip)` → kind=zip 条目表格；DocPreviewTest +2 |
 | S5 | ToolCatalog 补登记后启动告警清零 | 编译 + ToolCatalogAuditTest |
+
+## 7. 生成模型工具参数对齐（2026-10-31，随 rc.165）
+
+用户实测「有些生成不了，因为给模型的参数太少」——video_generate 只有 4 参、image_generate 缺
+图生图/质量档/按次换模型。逐项对齐端点真实 wire 形态后，**五条生成路径在模拟器 + mock 端点上
+全部走通**（mock 收到的请求序列为证）：
+
+| 路径 | wire 形态 | 实测 |
+|---|---|---|
+| 文生视频 | JSON /videos（seconds 字符串、比例映射） | ✓ mp4 落盘 |
+| 图生视频 | multipart /videos（input_reference） | ✓ 边界可见 |
+| 文生图 | JSON /images/generations（quality/model） | ✓ |
+| 图生图 | multipart /images/edits（端点尾段自动推导） | ✓ |
+| 400 错误 | 可行动提示（时长/分辨率/模型/参考图各一句「怎么改」） | ✓ |
