@@ -129,3 +129,9 @@ docx 内 word/media/image1.png + 1 个 drawing，模型回报 images=1。
   device_info、sticker_list 共 13 个真只读工具进并发池——批量读取轮次不再串行排队。
 - 实测：mode 校验（image2video 缺图被拦 + 错误原文上报）走真实 Agent 轮；
   全量 476 单测绿。
+
+## 9.1 PARALLEL 声明设备实测（rc.167 发版后补充）
+
+一轮内同时调用 4 个新声明为并发的只读工具（memory_list / schedule_list / sticker_list /
+device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 2ms**（进同一并发组），
+执行 3–47ms 全部成功——PARALLEL 声明真实生效。会话日志留档（sessions/*.v2.jsonl）。
