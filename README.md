@@ -1376,6 +1376,26 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.165（versionCode 165）· 2026-10-31 · 生成模型工具参数对齐端点能力（视频图生图 + 图像编辑与质量档）
+
+用户实测反馈「有些生成不了，因为给模型的参数太少」。逐个对照 OpenAI 兼容端点的真实 wire 形态补齐：
+
+**video_generate 参数扩充**。此前只有 prompt/duration/size/path 四个参数：① 新增 **aspect_ratio**
+（16:9 / 9:16 / 1:1，自动映射分辨率；竖屏 9:16 是手机端最高频需求）；② 新增 **image_path 图生视频**
+——工作区参考图走 multipart `input_reference`（OpenAI sora-2 wire 形态），「把生成的图变成视频」
+这条主链路此前完全做不了；③ 新增 **model 按次覆盖**（一个端点常挂多个视频模型）；
+④ **seconds 的 wire 形态 400 互换重试**（OpenAI 规范是字符串、部分兼容端点只认数字）；
+⑤ 400 错误带**可行动提示**（时长/分辨率/模型/参考图四类拒绝各给一句「怎么改」），不再只回 200 字符原始 body。
+
+**image_generate 补齐三参**。① **quality 档位**（auto/low/medium/high，gpt-image-1 系）——callApi
+早已透传该字段但 schema 没暴露给模型；② **image_path 图生图**——multipart `/images/edits`
+（端点尾段自动推导 generations→edits）；③ **model 按次覆盖**。4xx 错误同样带可行动提示
+（edits 不支持 / quality 不认 / 模型不存在各给一句）。
+
+**实测**（模拟器 + mock 生成端点，真实 Agent 轮）：文生视频（9:16 映射 + mp4 落盘）、
+图生视频（multipart 边界可见）、文生图（quality/model）、图生图（/images/edits multipart）
+五条请求路径全部走通，工作区落 2 mp4 + 2 png。
+
 ### rc.164（versionCode 164）· 2026-10-31 · 自造插件同轮生效 + 清单插件提示词段落 + 渲染修复
 
 本轮主题：「一切皆插件」做实——harness 真正能**自造插件、当场装配、同轮调用、随时卸载**，
