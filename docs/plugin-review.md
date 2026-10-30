@@ -117,3 +117,15 @@ drawing（EMU 缩放，5.5 英寸宽上限），尺寸读取支持 PNG/GIF 头�
 解析不到/超 8MB 降级为说明段。**两处平台差异实测踩过**：Android regex 拒绝未转义 `}`
 （OpenJDK 容忍）；图片 zip 条目必须走二进制通道。设备实测：真实 PNG 嵌入，
 docx 内 word/media/image1.png + 1 个 drawing，模型回报 images=1。
+
+## 9. 显式 mode 参数 + 只读工具并发声明（2026-10-31，随 rc.167）
+
+- **video_generate 补 `mode` 参数**（auto / text2video / image2video）：此前「文生 vs 图生」
+  由 image_path 在场与否隐式推断——wire 形态对了，但 schema 不自解释，模型想图生视频却
+  忘给图时会走进端点黑盒。现在：显式声明模式；image2video 缺图在**创建请求前**被拦截
+  （实测：`mode=image2video 需要参考图：请给 image_path`），错误可行动。
+- **只读工具补 `executionMode = PARALLEL`**（上一轮待办）：memory_search/memory_list、
+  session_event_read/search/trace、session_search/trace、schedule_list、plugin_spec/plugin_list、
+  device_info、sticker_list 共 13 个真只读工具进并发池——批量读取轮次不再串行排队。
+- 实测：mode 校验（image2video 缺图被拦 + 错误原文上报）走真实 Agent 轮；
+  全量 476 单测绿。
