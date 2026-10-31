@@ -1384,6 +1384,17 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.180（versionCode 180）· 2026-10-31 · 顶部按钮材质统一 + 有草稿时长按语音
+
+对话页顶部返回/团队/更多三颗圆形按钮，在深色模式下下沿会聚出一小块白色高光。
+根因是它们单独叠了一层渐变、描边与内高光，和其它圆形按钮不是同一套材质；现在直接复用
+`.glass-btn`（新建会话 / 新建任务 / 文件搜索同一配方），按钮自己不再叠边光，深色下沿恢复干净。
+
+输入框里有字时长按不出语音：有草稿时 Android 会先启动原生文字选择，DOM 的长按计时和
+`pointerup` 都可能被吞掉。现在由 Activity 只接管「按在聊天输入框上」的长按（抑制系统选择），
+JS 侧补 contextmenu / selectionchange 两条兜底入口；松手由原生 Touch 监听补发，
+不再依赖可能被吞掉的 DOM 事件。
+
 ### rc.179（versionCode 179）· 2026-10-31 · 生成模型设置行去掉冗余文案与对号
 
 设置页「生成模型」分组里的行不再显示「图片 / 视频模型」和「图片 ✓ · 视频 ✓」——
@@ -3426,7 +3437,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.179`（versionCode 179，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.180`（versionCode 180，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
