@@ -1384,6 +1384,46 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.175（versionCode 175）· 2026-10-31 · 裸调 HTTP 逃生通道 + 快捷面板不再闪
+
+**新增 `http_request`：工具 schema 与端点方言不匹配时的逃生通道**。此前只有
+`web_fetch`（GET + 正文抽取），JSON POST、自定义请求头、非文本响应都没有入口，
+模型只能干等工具发版。现在可以按接口文档原样发请求：方法（GET/POST/PUT/PATCH/
+DELETE/HEAD/OPTIONS）、请求头、请求体（JSON 对象可直接传）、Content-Type、超时、
+是否跟随重定向都由模型指定；返回状态码、响应头与响应体（文本按 `max_chars` 截断，
+二进制只回元信息）。请求体上限 1MB；跨 origin 重定向自动摘掉 Authorization/Cookie，
+避免 token 跟着 302 泄漏。工具按写操作登记：只读/计划模式禁用，POST/PUT/PATCH/DELETE
+在「危险操作前询问」开启时需要确认。注意 release 构建仍禁止明文 HTTP（网络安全配置），
+`http://` 目标会被系统拦截；云 API 走 https，调试本地服务用 debug 包或 https 隧道。
+
+**video_generate 的 mode 枚举改为纯探测来源**。此前没有契约时 schema 兜底写死
+`auto / text2video / image2video`（工具描述也写死「两种模式」），与端点方言无关；
+`probe_gen_endpoint` 虽然把契约写进了 gen.json，但没有刷新注册表缓存，而且 AgentDriver
+只按工具名判断目录是否变化，枚举更新传不到模型。现在：无契约时**不给 enum**（mode
+保持自由字符串，按端点文档传值或先探测）；有契约时枚举只来自 `capabilities.modes`；
+探测会读取端点错误里的 `valid_modes / supported_modes / modes` 或 message 中的
+「valid modes: …」列表，不再只靠固定候选瞎试；探测后立即 `refreshTools`，AgentDriver
+每步按完整 schema 比较（不再只看工具名），同轮下一步就能看到新枚举；`auto` 只在
+有参考图时从契约里挑图生模式（image/reference/i2v），不会把 auto 发给端点。
+
+**后台任务完成通知进入 agent 队列 + 空闲自动唤醒**。此前 `job_done` 只往界面推一张
+notice 卡片，模型并不知道后台任务结束了，只能手动 `job_output` 轮询；空闲会话更等不到
+结果。现在 JobRegistry 按 owner 维护完成通知队列：`job_output(wait=true)` 活体收走的
+结果不再重复通知，等待超时不吞后续结算，模型自己 `job_kill` 不回通知；忙碌会话由
+`agent/pre-step` 在下一步把通知注入上下文，空闲且停在对话页时前端 drain 同一队列并
+自动发起一轮继续处理（通知属于别的会话、输入框有草稿、面板打开时不打扰，留待下次进入）。
+队列是进程本地的（与任务执行一致），不承诺跨重启。
+
+**快捷操作浮窗切换权限不再闪**。原本切换权限/预设/计划模式都调用
+`openSheet(sheetQuickActions())` 整块重画，已打开的面板会被做一次 120ms 透明度淡入，
+表现为整个浮窗闪一下。改为 `syncQuickActionsUI()` 就地更新类名与文案，分段滑块在
+原 DOM 上过渡，不再重建面板；预设与计划模式切换同样受益。
+
+单测 494 → **513 全绿**（+8 http_request：方法/头/体、危险输入拒绝、截断、二进制、
+重定向、gzip、对象 body、跨源脱敏；+2 端点 valid_modes 学习；+3 video schema
+无契约不编造枚举 / 枚举来自契约 / auto 图生推断；+6 后台完成通知：入队、活体等待
+抑制、超时等待不吞通知、模型 kill 不通知、无主不通知、队列上限淘汰）。
+
 ### rc.174（versionCode 174）· 2026-10-31 · 安全边界收口 + 状态一致性 + 发布链路修正
 
 **预览页不再暴露原生桥**。`addJavascriptInterface` 会注入所有 frame，`sandbox` 只隔离
@@ -3328,7 +3368,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.174`（versionCode 174，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.175`（versionCode 175，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
