@@ -1388,6 +1388,34 @@ Agent 无法跨格式保持视觉一致性。
 blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
 材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
 
+### rc.170（versionCode 170）· 2026-10-31 · 生成端点能力探测（方言运行时习得，不写死）+ 完整收口
+
+**核心思路转变**：之前的 mode/size 枚举是硬编码的猜测值（text2video/image2video/1280x720），
+换厂商就废。现在把探测能力做进 harness 本体——端点的校验错误就是说明书，探针逐候选发
+**带非法 size 的请求**（size 校验必然拒绝，永不误创建真实任务），从错误流学出端点方言。
+
+**GenProbe**（纯 JVM 学习器 + HTTP 驱动分离）：baseline 错误暴露最严格前置条件（mode 必填、
+size 白名单直给）；逐候选试 mode（text/reference/text2video/…12 个候选的搜索空间）；
+valid_sizes 从任何一步的 valid_sizes 字段收集。JVM 测试用 agnes 真实错误原文钉住。
+
+**video_generate / image_generate 动态 schema**。工具定义从契约动态生成：探测后 mode/size
+的枚举即端点合法值（实测 agnes: mode=[text,reference], size=[720P]）；探测工具
+probe_gen_endpoint / probe_image_endpoint 让 agent 换厂商后自己探测；生成失败 400 时自愈
+（重新探测 → refreshTools → 同轮下一步枚举已刷新）。设备实测：探测 → 契约存入 →
+schema 枚举变为端点方言 [text, reference] / [720P]。
+
+**队友历史结构化**（M0 遗留 #4 清零）：assistantTurn 带 tool_calls wire、toolExec 全量落
+id/args/output、inbox 补充落日志；memberHistory 重建结构化消息（旧格式兼容）。
+JVM 测试 4 项 + 设备实测。
+
+**write_docx 富文本**：超链接/斜体/删除线/嵌套列表/图片嵌入（设备实测五特征齐备）。
+**schemas 缓存**：每步重算 → 结构变更失效（4 失效点），JVM 断言同实例命中。
+**流式光标移除**（对齐桌面）：attachCaret/removeCaret/样式全删，流式期间 .caret = 0。
+**玻璃对齐**：回到底部按钮 glass-strong → glass-a/b 渐变 + blur 38px（与 .composer 同配方）。
+
+单测 474 → **486 全绿**。审查文档：[docs/plugin-review.md](docs/plugin-review.md)、
+[docs/harness-review.md](docs/harness-review.md)。
+
 ### rc.169（versionCode 169）· 2026-10-31 · 队友历史结构化（冷恢复不失忆）+ workflow fan-out 实证 + 玻璃对齐
 
 **队友历史结构化（文本级 → 与主会话 messages 同构）**。此前成员轮循环只往日志写
