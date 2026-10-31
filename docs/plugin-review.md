@@ -186,3 +186,12 @@ device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 
 - **PPT 图片嵌入**：write_pptx 支持 image + image_side（right/left/full），真 p:pic +
   media part + rels；缺图降级不阻断。JVM 测试 2 项 + 设备实测两页 media 齐全。
 - **文本部分复制**：user-select: text + 长按放行正文区，系统原生选择接管。
+
+## 15. 深研/子代理模型/PPT 转场（2026-10-31，随 rc.173）
+
+- **web_search.fetch_top**：自动抓前 N（0–3）条正文合并，每页 6000 字上限、单页失败不中断；
+  teammate 侧无 fetch 能力时降级为搜索清单。
+- **子代理模型分档**：AgentConfig.subagentModel/Url/Key；优先级「成员显式 > 子代理档 > Lead」；
+  三项空值等价旧行为（JVM 测试钉住）。
+- **PPT transition**：fade/push/wipe/cover/none → `<p:transition>`；元素动画不做（timing 树成本高、
+  产出物以阅读为主）。设备实测 fade 与 push 均正确落包，工具描述已告知模型。
