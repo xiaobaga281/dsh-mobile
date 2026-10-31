@@ -287,13 +287,21 @@ dsh plugin --profile <profile名> add "github:xiaobaga281/dsh-mobile#path:deskto
 | JDK | `C:/Program Files/Java/jdk-17` | Gradle 用 17 |
 
 ```bash
-# 命令行构建（无需 IDE）
-./gradlew assembleDebug    # 产物：app/build/outputs/apk/debug/app-debug.apk
-./gradlew assembleRelease  # 产物：app/build/outputs/apk/release/app-release.apk
-# 发布副本：DSH-Mobile-0.2.1-rc.98-release.apk（仓库根目录 + ../dsh-mobile-release/）
+# 命令行构建（无需 IDE）。两个通道 × 两个 ABI，各自出包：
+#   standard（targetSdk 35）  ./gradlew assembleStandardRelease
+#   complete（targetSdk 28）  ./gradlew assembleCompleteRelease
+# 产物：app/build/outputs/apk/<flavor>/release/app-<flavor>-<abi>-release.apk
+#   standard → app/build/outputs/apk/standard/release/app-standard-arm64-v8a-release.apk
+#   complete → app/build/outputs/apk/complete/release/app-complete-arm64-v8a-release.apk
 
-# 安装到手机（开启 USB 调试）
-"D:/1/tools/android-sdk/platform-tools/adb.exe" install -r DSH-Mobile-0.2.1-rc.98-release.apk
+# 发布（版本从 version.properties 读，校验 badging/签名后同步到 ../dsh-mobile-release/）
+pwsh -NoProfile -File scripts/publish-release.ps1
+# 发布副本命名（<abi> = arm64-v8a | x86_64）：
+#   DSH-Mobile-<版本>-<abi>-release.apk          （complete）
+#   DSH-Mobile-<版本>-standard-<abi>-release.apk （standard）
+
+# 安装到手机（开启 USB 调试；文件名以 release-manifest.json 为准）
+"D:/1/tools/android-sdk/platform-tools/adb.exe" install -r "D:/1/dsh-mobile-release/DSH-Mobile-<版本>-arm64-v8a-release.apk"
 ```
 
 > `local.properties` 已指向 `D:/1/tools/android-sdk`；换机器时改这一行即可。
@@ -1376,17 +1384,34 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
-### rc.169（versionCode 169）· 2026-10-31 · video_generate mode 透传 + 回到底部按钮材质对齐输入框
+### rc.174（versionCode 174）· 2026-10-31 · 安全边界收口 + 状态一致性 + 发布链路修正
 
-**video_generate 的 mode 透传给端点**。rc.167 加的 mode 参数此前只用于客户端校验与分流，
-创建请求里没有带 mode 字段——而端点自己按 mode 分流（text2video / image2video 的前置条件
-不同）。现在显式给了 text2video / image2video 才透传（auto 是客户端推断语义，不该把
-"auto" 发给端点）；multipart 图生视频路径同样携带。
+**预览页不再暴露原生桥**。`addJavascriptInterface` 会注入所有 frame，`sandbox` 只隔离
+同源/DOM/存储、不隔离注入对象——模型生成的 HTML 据此可调用 127 个 `@JavascriptInterface`
+方法。现在预览 srcdoc 文档最前面注入 shim：枚举 `window` 里 `^DSHNative` / `DshPtc`
+并置 undefined + `defineProperty` 锁死，另加 CSP（`connect-src 'none'` / `form-action 'none'`），
+主文档与内联图表脚本不受影响；生成类预览再走一道 `sanitizeGenerated`（去 `<script>` 与
+标签内 `on*`，保留文本内容），xlsx 工作表名补 `esc()`。
 
-**回到底部按钮材质对齐输入框**。用户实测反馈「按钮没输入框通透」：按钮用的是
-`--glass-strong`（0.78 纯色）+ blur 30px，而输入框是 `--glass-a/b` 渐变（0.40/0.16）+
-blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
-材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
+**宿主导航按 origin 精确比对**。`startsWith(host)` 换成 scheme + host + 端口（默认端口折叠）
+逐项相等；`currentPageUrl` 随 pageStarted/Finished 记录，`isLocalPage()` 只在「非远端 +
+桥已挂 + 当前 URL 是本地 origin」三者同时成立时为真；子框架导航一律拦截，不整页劫持。
+markdown 链接改为白名单（`http(s)://` / `mailto:` / `#`）。
+
+**电脑会话状态收口**。返回键先 `Link.leave()`；切换会话清空排队队列并重绘；历史/增量
+轮询按 `id + sessionId` 对账，迟到回包丢弃并为当前会话补拉，不再把 A 的响应写进 B。
+
+**发布链路按 flavor + ABI 现实修正**。门禁识别 `app/build/outputs/apk/<flavor>/release/`
+全部 APK，签名逐个校验、预算分档（standard 100 / complete 260 MiB）；CI 单测任务名改
+`testStandardDebugUnitTest`；`publish-release.ps1` 支持 standard/complete 双产物 + badging/
+签名校验 + manifest 记录 standard 摘要，README 构建命令同步为实际产物路径。
+
+**代码卫生**。`--label-1`（未定义）全部改回 `--label`；删除重复的 `case "toolrow"` 与
+失效的 `[data-toggle-tool]` 分支；移除约 100 行零引用 CSS（旧 tool-card/chat-context/
+tt-meta 等，`.spinner` 保留）；剔除未使用的 CameraX 四个依赖；宿主会话列表补 `letter`/
+`tint`（此前头像显示空字符）；删除 README 里误重复的 rc.169 条目。
+
+单测 491 → **494 全绿**（+1 origin 精确比对、+2 生成预览消毒）。
 
 ### rc.173（versionCode 173）· 2026-10-31 · 深度调研一次成型 + 子代理模型分档 + PPT 页切换
 
@@ -3303,7 +3328,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.98`（versionCode 97；发布 APK 在仓库根目录与 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.174`（versionCode 174，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
