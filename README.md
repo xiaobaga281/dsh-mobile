@@ -1384,6 +1384,19 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.176（versionCode 176）· 2026-10-31 · 输入框有草稿时长按仍能语音输入
+
+**问题**：输入框已经有文字时，长按不再唤起语音输入。根因是 Android 的原生文字选择
+会先接管长按并发 `pointercancel`，旧代码把它当成「松手」清掉了 420ms 长按计时器。
+
+**修复**：长按计时只认 `pointerup`，不再被 `pointercancel` 取消；判定窗口内给输入框
+临时加 `is-voice-arming`（`user-select:none`）压住原生选择手柄，并吞掉
+`contextmenu`；触发时清掉已存在的选择。识别结果不再覆盖草稿——输入框有内容时把
+语音文字追加到草稿末尾，由用户确认后发送（避免把「草稿 + 语音」当成一条对不上录音
+的语音消息发出去）；无草稿时保持「说完即发语音条」的原行为。
+
+单测 513 全绿（纯 Web 改动）；新增 `input-longpress-voice` 回归守卫。
+
 ### rc.175（versionCode 175）· 2026-10-31 · 裸调 HTTP 逃生通道 + 快捷面板不再闪
 
 **新增 `http_request`：工具 schema 与端点方言不匹配时的逃生通道**。此前只有
@@ -3368,7 +3381,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.175`（versionCode 175，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.176`（versionCode 176，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
