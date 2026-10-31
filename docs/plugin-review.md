@@ -145,3 +145,20 @@ device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 
 - **流式光标移除**（对齐桌面 ui-chat 无光标）：attachCaret/removeCaret/调用点/样式全删，
   设备实测流式期间 .caret = 0。
 - **玻璃降级补齐**：.to-bottom 加入 @supports not 清单。
+
+## 11. video mode 透传 + 按钮材质对齐（2026-10-31，随 rc.169）
+
+- **mode 透传**：显式 text2video/image2video 进创建请求体（JSON 与 multipart 两路都带）；
+  auto 不发——它是客户端推断语义，端点不认识。
+- **回到底部按钮材质对齐输入框**：glass-strong(0.78 纯色)+blur30 → glass-a/b 渐变+blur38。
+  实测断言：按钮与 .composer 的 backgroundImage / backdropFilter 计算值完全一致。
+
+## 12. 队友历史结构化 + workflow fan-out 实证（2026-10-31，随 rc.169）
+
+- **队友历史结构化**（M0 遗留清单 #4 清零）：assistantTurn 带 tool_calls wire、
+  toolExec(id/args/output 全量)、inbox 补充落日志；memberHistory 重建结构化消息
+  （旧格式日志文本近似兼容）。JVM 测试 4 项（配对/补充落日志/旧格式/limit 截断）。
+- **workflow fan-out 设备实证**：一轮两次 spawn_teammate → 两成员并行激活 → wait_agent。
+  成员失败均为测试端点 429（如实记 failed）。手机端 workflow 形态结论：异步团队 fan-out，
+  同步脚本编排不照搬（run_code 30s 超时 vs 子代理分钟级）。
+- **待办清零后新增**：无。剩余平台边界（PTY/Landlock/准点唤醒）为 Android 平台限制，如实标注。
