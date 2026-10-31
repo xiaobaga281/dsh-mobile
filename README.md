@@ -1376,6 +1376,38 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.169（versionCode 169）· 2026-10-31 · video_generate mode 透传 + 回到底部按钮材质对齐输入框
+
+**video_generate 的 mode 透传给端点**。rc.167 加的 mode 参数此前只用于客户端校验与分流，
+创建请求里没有带 mode 字段——而端点自己按 mode 分流（text2video / image2video 的前置条件
+不同）。现在显式给了 text2video / image2video 才透传（auto 是客户端推断语义，不该把
+"auto" 发给端点）；multipart 图生视频路径同样携带。
+
+**回到底部按钮材质对齐输入框**。用户实测反馈「按钮没输入框通透」：按钮用的是
+`--glass-strong`（0.78 纯色）+ blur 30px，而输入框是 `--glass-a/b` 渐变（0.40/0.16）+
+blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
+材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
+
+### rc.169（versionCode 169）· 2026-10-31 · 队友历史结构化（冷恢复不失忆）+ workflow fan-out 实证 + 玻璃对齐
+
+**队友历史结构化（文本级 → 与主会话 messages 同构）**。此前成员轮循环只往日志写
+assistant 最终文本与 400 字符工具摘要——冷恢复的队友不知道自己上轮调了什么工具、用了什么
+参数、看不到真实输出，工具结果还被伪装成 user 消息（对话结构无效）。修复三处：
+① `assistantTurn` 带上 tool_calls wire（与主会话日志同构）；
+② `toolResult` → `toolExec`：id/参数/输出全量落日志（输出截 2000 字，对齐工具输出约定）；
+③ **inbox 补充消息落日志**——此前只进内存，重启即失忆。
+memberHistory 重建：新日志输出 role=assistant(带 tool_calls) / role=tool(tool_call_id 配对)
+的结构化消息；旧格式日志保持文本近似兼容。JVM 测试 4 项钉住（配对/补充落日志/旧格式/limit）。
+
+**workflow fan-out 设备实证**。Lead 一轮内两次 spawn_teammate（alpha/beta）→ 两成员并行激活
+→ wait_agent 等待。两个成员的失败均为测试端点 429 限流（如实记 failed 而非假装成功）。
+结论：手机端的 workflow 形态 = **异步团队 fan-out**（spawn 并行 + 任务板聚合 + wait_agent），
+桌面式「模型写同步编排脚本」因 run_code 30 秒超时与子代理分钟级耗时冲突，不照搬。
+
+**回到底部按钮材质对齐输入框**。glass-strong(0.78 纯色)+blur30 → glass-a/b 渐变+blur38
+（与 .composer 同配方）；材质模拟器断言：按钮与 .composer 的 backgroundImage/backdropFilter
+计算值完全一致。
+
 ### rc.168（versionCode 168）· 2026-10-31 · 文档富化（超链接/斜体/删除线/嵌套列表）+ schemas 缓存 + 流式光标移除 + 玻璃降级补齐
 
 **write_docx 富文本**。Markdown 子集从此支持：`[文字](https://…)` **超链接**（外部关系
