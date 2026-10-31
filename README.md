@@ -1388,6 +1388,18 @@ Agent 无法跨格式保持视觉一致性。
 blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
 材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
 
+### rc.171（versionCode 171）· 2026-10-31 · probe_gen_endpoint 稳定化 + 探测结果全链路闭环
+
+上一版 probe_gen_endpoint 在设备上崩了（JSONException: Not a primitive array）——根因是
+Android 的 JSONArray(List) 走了 JSONArray(Object) 重载。修复三处：① Contract.toJson() 里
+JSONArray(list) 改为逐条 put；② probe_gen_endpoint/image_generate 返回值里的 JSONArray(list)
+同理；③ GenProbe 的 probeImage 网络异常从"抛出"改为"安全降级为空契约"。
+
+修复后设备实测：探测→modes=[text, reference] / sizes=[720P]→写 gen.json→
+video_generate schema 枚举即时更新为端点方言→按正确 mode 生成。
+
+单测 476 → **486 全绿**。
+
 ### rc.170（versionCode 170）· 2026-10-31 · 生成端点能力探测（方言运行时习得，不写死）+ 完整收口
 
 **核心思路转变**：之前的 mode/size 枚举是硬编码的猜测值（text2video/image2video/1280x720），
