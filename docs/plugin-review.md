@@ -177,3 +177,12 @@ device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 
 - **自愈**：生成 400 → 重新探测 → refreshTools → 可行动错误带端点合法值。
 - **收口**：agnes 端点探测 → 契约 [text, reference]/[720P] → video_generate 按正确
   mode=text 生成成功（设备实测）。不再需要「逐个枚举试错」。
+
+## 14. 参考图 wire 通用化 + PPT 图片嵌入（2026-10-31，随 rc.172）
+
+- **参考图 wire 契约化**：GenProbe 探测 json-base64 字段（images/image/image_url）vs multipart
+  （input_reference）；契约存 imageWire/imageField；执行按契约；未探测时双形态都试。
+  agnes 实测：mode=reference + images[base64] 全校验通过（返回 queue_full = 参数正确）。
+- **PPT 图片嵌入**：write_pptx 支持 image + image_side（right/left/full），真 p:pic +
+  media part + rels；缺图降级不阻断。JVM 测试 2 项 + 设备实测两页 media 齐全。
+- **文本部分复制**：user-select: text + 长按放行正文区，系统原生选择接管。
