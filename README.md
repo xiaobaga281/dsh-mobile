@@ -1384,6 +1384,22 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.181（versionCode 181）· 2026-10-31 · 定时任务到点真正发起一轮 + 更新源替换
+
+**任务到点对话没反应**：提醒的投递只把消息写进内核会话日志，`schedule_due` 反而不再发 ——
+投递器接上后 `onDue` 被绕开，界面既不知道到点，也不会拉起新一轮；应用不在时连通知都没有。
+现在投递成功后仍然发 `schedule_due`（带 `delivered=true`），并补齐四种场景：
+
+- **当前会话空闲**：立即把提醒原文显示进对话并发起一轮。提醒已经在内核日志里，
+  触发用 nudge，不再把 prompt 当「新的用户消息」重发一遍；
+- **当前正在生成**：排到本轮结束后再唤醒，不打断正在生成的回复；
+- **另一个会话**：写进该会话的前端缓存（列表可见）并落持久唤醒队列，进入时补一轮；
+- **应用不在 / WebView 被回收**：落持久唤醒队列 + 系统通知，下次进入会话自动继续。
+
+**更新源替换**：`ghfast.top` 在 2026-10-31 实测超时不可用；按实测速度换为
+`gh-proxy.org`（≈233 KB/s）→ `gh-proxy.com`（≈215 KB/s）→ `ghfile.geekertao.top`（≈178 KB/s），
+官方地址兜底。
+
 ### rc.180（versionCode 180）· 2026-10-31 · 顶部按钮材质统一 + 有草稿时长按语音
 
 对话页顶部返回/团队/更多三颗圆形按钮，在深色模式下下沿会聚出一小块白色高光。
@@ -2011,6 +2027,9 @@ JVM 单测（无 Looper）一碰这个类就 `ExceptionInInitializerError`，整
 - 浮窗里 `ready` 态补了「安装」按钮：重开浮窗看到的是同一个状态，手动点一下即可。
 
 ### rc.147（versionCode 147）· 2026-10-29 · 更新源实测校正：镜像按速度排序 + 修 API 回退失效
+
+> **※ 现状（rc.181）**：`ghfast.top` 已失效（2026-10-31 实测超时），
+> 镜像顺序改为 `gh-proxy.org → gh-proxy.com → ghfile.geekertao.top`，见 rc.181。
 
 用真实资产地址逐源实测（本机，取前 2MB）：
 
@@ -3437,7 +3456,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.180`（versionCode 180，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.181`（versionCode 181，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
