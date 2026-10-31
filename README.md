@@ -254,7 +254,7 @@ python scripts/tts_voice_probe.py --model-dir <解包目录> --model-file xxx.on
 ## 安装与系统要求
 
 - Android 8.0（API 26）及以上
-- 前往 Releases 下载最新 `DSH-Mobile-x.x.x-release.apk`，允许「安装未知来源应用」后安装
+- 前往 Releases 下载最新 `DSH-Mobile-<版本>-arm64-v8a-release.apk`（complete）或 `DSH-Mobile-<版本>-standard-arm64-v8a-release.apk`，允许「安装未知来源应用」后安装；文件名与 sha256 以 release 页的 release-manifest.json 为准
 - 打开 App，设置中配置模型 API 与密钥即可开始对话
 - （可选）设置 → 连接电脑，填桌面端面板三项完成配对
 
@@ -336,7 +336,7 @@ dsh-mobile/
 - WebView 调试：`adb forward tcp:9223 localabstract:webview_devtools_remote_<pid>`。
 
 APK 实测信息：`ai.deepseek.harness.mobile` · minSdk 26 / target 35。
-versionName/versionCode、权限集合、APK 大小与 sha256 以 [`docs/facts.json`](docs/facts.json) 为准 —— 该文件由 `scripts/gen-facts.mjs` 从构建产物生成，`scripts/verify-facts.mjs` 在 CI 中校验；**不再手写权限清单**（此前手写的那份与真实清单不符，已删除）。
+versionName/versionCode、工具数、单测数与权限集合以 [`docs/facts.json`](docs/facts.json) 为准 —— 该文件由 `scripts/gen-facts.mjs` 从源码/清单生成（**不含 APK**，保证干净检出可复现），`scripts/verify-facts.mjs` 在 CI 中校验；APK 的 size/sha256 属于发布产物，以 `../dsh-mobile-release/release-manifest.json` 为准。**不再手写权限清单**（此前手写的那份与真实清单不符，已删除）。
 
 ### 荣耀通透能力接入（已接入官方 aar）
 
@@ -1383,6 +1383,51 @@ Agent 无法跨格式保持视觉一致性。
 > **以后所有升级记录统一写在这一节**（每次升级在顶部新增条目，含 App 版本与涉及的插件/文档版本），不再单独维护 RELEASE-NOTES。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
+
+### rc.179（versionCode 179）· 2026-10-31 · 生成模型设置行去掉冗余文案与对号
+
+设置页「生成模型」分组里的行不再显示「图片 / 视频模型」和「图片 ✓ · 视频 ✓」——
+状态对号在小字号下视觉噪音大，分组标题已经说明这是什么。行标签收敛为「模型配置」，
+右侧只留一句极简状态：未配置 / 部分配置 / 已配置；模型详情仍在点开后的浮层里。
+
+### rc.178（versionCode 178）· 2026-10-31 · 局域网 HTTP 模型端点放行 + 公网明文拦截
+
+**问题**：添加自定义模型时填 `http://192.168.0.99:8090/v1`，被系统报
+`Cleartext HTTP traffic not permitted` —— 本地/局域网模型几乎都是明文 HTTP，
+而 release 的网络安全配置之前一刀切禁止明文。
+
+**修复**：系统层放行明文（`network_security_config` base=true），真正的边界移到应用层
+`kernel/NetPolicy`：只允许本机/局域网/单标签主机名走 `http`（localhost、10.x、
+172.16–31.x、192.168.x、169.254.x、100.64/10、`.local/.lan/.home/.internal`、单标签名），
+公网 `http` 在模型端点、模型拉取、探针、裸调接口、搜索、中继等入口一律拒绝并要求 https。
+这样本地模型开箱即用，API Key/token 不会因误填公网 http 明文出网。模型表单也补了提示。
+
+单测 515 → **518 全绿**（+3 局域网/公网/非 http 协议策略）。
+
+### rc.177（versionCode 177）· 2026-10-31 · 八个可靠性 / 安全洞收口
+
+按复审清单逐项堵上：
+
+- **停止键能打断长等待**：取消时主动释放计划评审 / 提问 / 危险确认闸门；
+  `wait_agent` 改为 250ms 分片等待并读取活体取消信号，不再只能靠线程中断。
+- **团队提交竞态**：`FutureTask` 先登记 `active/running` 再派发，工作线程跑完时
+  不会出现主线程把「运行中」写回去 —— 成员不再永久 running、`wait_agent` 不再白等。
+- **预览嵌套 iframe 桥隔离**：WebView 级 document-start 脚本对所有子 frame 生效，
+  主 frame 保留桥；运行时新建的 `data:`/`blob:` iframe 也拿不到 `DSHNative*`/`DshPtc`。
+- **备份不再带走凭据**：`backup_rules` / `data_extraction_rules` 排除 SharedPreferences
+  （中继口令、账号 token、宿主 token）。
+- **门禁可信**：CI 改 `lintStandardDebug`、补跑 web-regress、新增 complete flavor 构建；
+  修掉 8 个 lint error；facts 不再记录本机 APK 的 size/sha（由 release-manifest 负责），
+  干净检出可逐字节复现。
+- **会话状态归属**：进成员视图 / 电脑会话 / 新建会话统一收尾并清队列；媒体/表情/交付
+  事件携带并校验 `sessionId`。
+- **长任务后台化**：`video_generate` 支持 `run_in_background`；`RunService` 改为多会话
+  引用计数（先结束的会话不再撤掉仍在跑的服务），WakeLock 6 小时并按需续期；后台完成
+  通知落盘，进程重启后进入会话可补唤醒。
+- **记忆打通**：kernel `memory_save` 写入的全局/会话记忆接入 runtime-context（与前端
+  LocalDB 记忆去重），模型不会「刚记住下一轮就忘」。
+
+单测 514 → **515 全绿**（+通知落盘恢复、+内核记忆入 prompt）；`lintStandardDebug` 0 error。
 
 ### rc.176（versionCode 176）· 2026-10-31 · 输入框有草稿时长按仍能语音输入
 
@@ -3381,7 +3426,7 @@ rc.133 只堵住了「延迟深拷贝」一处竞态，仍然治标 —— 因�
 
 - Harness 基座：`dsh-v0.2.1-rc.2`（已下载至 `../dsh/deepseek-harness-dsh-v0.2.1-rc.2`）
 - 荣耀 UIKit：`uikit_hnvisual` `hnvisualeffect-11.0.0.134`（aar 在 `app/libs/`，文档已解压至 `../honor-uikit`）
-- App：`0.2.1-rc.176`（versionCode 176，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
+- App：`0.2.1-rc.179`（versionCode 179，以 `version.properties` 为准；发布 APK 在 `../dsh-mobile-release/`）
 - 桌面插件：`dsh-mobile-link` v1.1.0（`../dsh-mobile-link`，GitHub `xiaobaga281/dsh-mobile#desktop-plugin`）
 
 ## 许可
