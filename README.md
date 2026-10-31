@@ -1388,6 +1388,31 @@ Agent 无法跨格式保持视觉一致性。
 blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
 材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
 
+### rc.172（versionCode 172）· 2026-10-31 · 参考图 wire 通用化（JSON base64 / multipart 双形态）+ PPT 图片嵌入 + 文本可部分复制
+
+**参考图 wire 通用化**。此前图生视频只有 multipart `input_reference`（OpenAI sora-2 形态），
+agnes 等国内厂商要的是 **JSON body 里的 base64**（`images: ["<b64>"]`）。现在：
+① GenProbe 探测参考图 wire（字段候选 images/image/image_url，把极小合法 PNG 的 base64 连同
+非法 size 发过去——size 校验必拒，永不误创建任务），学出 `imageWire` / `imageField` 存进契约；
+② `video_generate` **按契约执行**：json-base64 走 JSON body、multipart 走文件上传；
+③ **未探测时两种都试**（先 JSON base64，被端点明确拒图后再 multipart）——两种厂商都不破。
+实测 agnes：`mode=reference` + `images:[base64]` + `size=720P` 通过全部校验，返回
+`video_queue_full`（端点队列满，参数正确）。队列满现在给的是「等 1–2 分钟重试，不要改参数」，
+不再误报成配置问题。
+
+**PPT 图片嵌入**。write_pptx 每页可给 `image`（工作区 png/jpg）+ `image_side`
+（right 右半 / left 左半 / full 整页铺满），生成真图片：`ppt/media/imageN.ext`（二进制
+zip 条目）+ slide rels 的 image 关系 + `<p:pic>`（blipFill 指向 rIdImg1）。配图缺失只丢该页
+配图、不阻断整份 PPT。JVM 测试 2 项（嵌图齐全 / 缺图降级）。
+设备实测：两页各一份 media part + slide1 含 p:pic + rels 指向正确。
+
+**文本可部分复制**。消息正文此前无法选择任意片段（长按自定义面板抢走手势）。
+`.assistant-text` / `.bubble-user` 加 `user-select: text`；长按处理里正文区域直接放行
+（`.assistant-text, .bubble-user, pre, code` 不弹自定义面板），交给系统原生文字选择。
+实测两个元素 computed `user-select` 均为 `text`。
+
+单测 486 → **488 全绿**。
+
 ### rc.171（versionCode 171）· 2026-10-31 · probe_gen_endpoint 稳定化 + 探测结果全链路闭环
 
 上一版 probe_gen_endpoint 在设备上崩了（JSONException: Not a primitive array）——根因是
