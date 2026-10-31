@@ -162,3 +162,18 @@ device_info）：会话日志显示 4 个调用同属 step1、**派发时间差 
   成员失败均为测试端点 429（如实记 failed）。手机端 workflow 形态结论：异步团队 fan-out，
   同步脚本编排不照搬（run_code 30s 超时 vs 子代理分钟级）。
 - **待办清零后新增**：无。剩余平台边界（PTY/Landlock/准点唤醒）为 Android 平台限制，如实标注。
+
+## 13. 生成端点能力探测——方言运行时习得（2026-10-31，随 rc.170）
+
+**核心思路**：不把厂商方言写死在代码里，把探测能力做进 harness 本体。端点的校验错误
+就是说明书——探针发非法请求，从错误流学出 mode/size 契约，schema 动态生成。
+
+- **GenProbe**（`kernel/GenProbe.kt`）：纯 JVM 学习器（VideoContractLearner）+ HTTP 驱动。
+  探测请求带非法 size（PROBE_INVALID），永不误创建真实任务。agnes 实测：
+  mode=[text, reference]、size=[720P]。
+- **动态 schema**：video_generate / image_generate 的 mode/size 枚举从契约生成。
+  探测后 ctx.refreshTools(kind) 重索引，模型即刻看到端点方言。
+- **probe_gen_endpoint / probe_image_endpoint 工具**：agent 换厂商后自己探测。
+- **自愈**：生成 400 → 重新探测 → refreshTools → 可行动错误带端点合法值。
+- **收口**：agnes 端点探测 → 契约 [text, reference]/[720P] → video_generate 按正确
+  mode=text 生成成功（设备实测）。不再需要「逐个枚举试错」。
