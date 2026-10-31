@@ -1388,6 +1388,27 @@ Agent 无法跨格式保持视觉一致性。
 blur 38px——配方不同，按钮白得多。改为与输入框同配方（渐变 + 38px + 同 shadow），
 材质模拟器断言一致（backgroundImage 与 backdropFilter 完全相同）。
 
+### rc.173（versionCode 173）· 2026-10-31 · 深度调研一次成型 + 子代理模型分档 + PPT 页切换
+
+三个「扣分项」的针对性改进（审查结论见 docs/harness-review.md 第 4 轮）。
+
+**web_search 支持深度调研（fetch_top）**。此前深研要模型手动串 3–6 次
+web_search → web_fetch。现在给 `fetch_top`（0–3）就自动抓前 N 条结果的正文并合并返回
+（每页 chars_per_page 默认 6000、单页失败只记一行不中断）；
+`RuntimeTools.search` 同步扩参，teammate 侧不支持 fetch 时如实降级为搜索清单。
+
+**子代理模型分档**。`AgentConfig` 新增 `subagentModel / subagentUrl / subagentKey`：
+Lead 用强模型、teammate/子代理用便宜模型（并发场景成本与延迟显著下降）。
+子代理侧 `SubagentRunner` 与 teammate 侧 `TeamRuntime` 都按「成员显式模型 > 子代理档 > Lead 模型」
+取；三项全空时与以前逐字节等价（升级不回归，JVM 测试钉住）。
+
+**PPT 页切换**。write_pptx 每页可给 `transition`（fade 默认 / push / wipe / cover / none），
+生成 `<p:transition>`；**元素动画明确不做**（要写 timing 树几百行，而 agent 产出的 PPT
+主要被阅读/编辑而非演讲）。设备实测：slide1 fade、slide2 push 均正确落包。
+工具描述同步告知模型该字段（此前模型看不到所以不敢用）。
+
+单测 488 → **491 全绿**（+2 PPT 转场、+2 子代理模型档）。
+
 ### rc.172（versionCode 172）· 2026-10-31 · 参考图 wire 通用化（JSON base64 / multipart 双形态）+ PPT 图片嵌入 + 文本可部分复制
 
 **参考图 wire 通用化**。此前图生视频只有 multipart `input_reference`（OpenAI sora-2 形态），
