@@ -1,8 +1,8 @@
 {
   "name": "dsh-mobile-link",
-  "version": "1.0.0",
+  "version": "1.3.3",
   "displayName": "手机互联",
-  "description": "Phone pairing for DeepSeek Harness: three values (relay, room, key) bind a phone to this desktop, then the phone can read and continue the desktop's sessions. Works out of the box on the same LAN; across networks, self-host the bundled zero-dependency relay on a public server. 三项值（中继 / 房间号 / 口令）把手机与电脑配对，手机可读取并续接电脑上的会话；同一局域网开箱即用，跨网请把内置零依赖中继自部署到公网服务器。",
+  "description": "Phone pairing for DeepSeek Harness: three values (relay, room, key) bind a phone to this desktop, then the phone can read and continue the desktop's sessions. Works out of the box on the same LAN; across networks the plugin brings up its own tunnel (downloading the binary itself) or a fingerprint-pinned direct HTTPS endpoint, with the payloads encrypted end to end so the middle hop only sees ciphertext. 三项值（中继 / 房间号 / 口令）把手机与电脑配对，手机可读取并续接电脑上的会话；同一局域网开箱即用，跨网由插件自己拉起隧道或直接连（端到端加密，中间层只见密文），不需要用户跑任何命令。",
   "type": "module",
   "main": "./index.js",
   "icon": "./icon.svg",
@@ -11,6 +11,10 @@
     "./client": "./client.js",
     "./icon": "./icon.svg",
     "./relay": "./relay/server.mjs",
+    "./e2e": "./e2e.mjs",
+    "./rpc": "./rpc.mjs",
+    "./direct": "./direct.mjs",
+    "./tunnel": "./tunnel.mjs",
     "./package.json": "./package.json",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
@@ -18,6 +22,10 @@
     "index.js",
     "client.js",
     "relay/server.mjs",
+    "e2e.mjs",
+    "rpc.mjs",
+    "direct.mjs",
+    "tunnel.mjs",
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
@@ -25,7 +33,8 @@
   ],
   "scripts": {
     "relay": "node relay/server.mjs",
-    "check": "node --check index.js && node --check client.js && node --check relay/server.mjs"
+    "check": "node --check index.js && node --check client.js && node --check relay/server.mjs && node --check e2e.mjs && node --check rpc.mjs && node --check direct.mjs && node --check tunnel.mjs",
+    "test:cross": "node .test/cross.mjs"
   },
   "keywords": [
     "deepseek",
@@ -42,10 +51,14 @@
     "node": ">=18.0.0"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
-      "inject": ["@deepseek-ai/dsh-client-locale"]
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
     }
   }
 }
