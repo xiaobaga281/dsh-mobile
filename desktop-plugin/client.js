@@ -1,5 +1,5 @@
 window.__ModuleLoader__.load({
-  id: '@local/dsh-mobile-link',
+  id: 'dsh-mobile-link',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -62,8 +62,35 @@ window.__ModuleLoader__.load({
         stop: '停止联动',
         stoppedTitle: '联动未启动',
         stoppedHint: '点下面按钮启动，之后这里会显示中继地址、房间号和口令。',
-        startedHint: '手机打开「设置 → 连接宿主机」，填下面三项即可连上，不用扫码',
+        startedHint: '手机打开「设置 → 连接电脑」，填下面三项即可连上，不用扫码',
         startFailed: '启动失败：',
+        crossTitle: '跨网连接（不在同一网络）',
+        crossHint: '手机用流量、或这台电脑在另一个网络时用它。隧道由本插件自己下载、自己拉起，你不需要跑任何命令；手机↔电脑全程加密，中间那一跳只看得到密文。',
+        crossTunnel: '隧道（默认）',
+        crossDirect: '直连（不经过第三方）',
+        crossTunnelOn: '开启隧道',
+        crossTunnelOff: '关闭隧道',
+        crossDirectOn: '开启直连',
+        crossDirectOff: '关闭直连',
+        crossStarting: '启动中…',
+        crossDownloading: '正在下载 cloudflared（只需一次）',
+        crossIdle: '未开启',
+        crossReady: '已就绪',
+        crossFailed: '不可用',
+        crossUrl: '公网地址',
+        crossFingerprint: '证书指纹',
+        crossAddrNone: '这台机器上没有「手机可能直接连得到」的地址（没有全局 IPv6，也没有公网 IPv4）。这种情况请用隧道。',
+        crossAddrNote: '直连把这台机器的一个端口开到公网，只接受口令正确且能解密的请求。',
+        crossPairing: '配对串（手机端粘贴即可）',
+        crossPairHint: '手机端「连接电脑 → 粘贴配对串」，不用再抄地址和口令。',
+        crossUninstall: '清除已下载组件',
+        crossUninstalling: '清除中…',
+        crossPurged: '已清除 {n} 项',
+        crossPurgeNone: '没有可清除的组件',
+        crossPurgeHint: '下载来的 cloudflared 与自签证书都在插件自己的目录里，卸载插件会一起删掉；这里给一个手动兜底。',
+        crossBinaryMissing: '本机没有 cloudflared 且下载失败。可手动安装：{hint}',
+        crossVolatile: '隧道地址每次重启都会变，变了要重新粘贴配对串。',
+        crossOffWarn: '联动未启动，跨网开关要先生成中继与房间。',
       },
       en: {
         title: 'Mobile',
@@ -117,8 +144,35 @@ window.__ModuleLoader__.load({
         stop: 'Stop linking',
         stoppedTitle: 'Linking is off',
         stoppedHint: 'Press the button below; the relay address, room and key appear here.',
-        startedHint: 'On the phone: Settings → Connect host, then fill in the three values below',
+        startedHint: 'On the phone: Settings → Connect to PC, then fill in the three values below',
         startFailed: 'Could not start: ',
+        crossTitle: 'Cross-network (different networks)',
+        crossHint: 'For when the phone is on mobile data or this PC sits elsewhere. This plugin downloads and launches the tunnel binary itself — no commands for you to run. Phone↔PC traffic is encrypted end to end, so the middle hop only ever sees ciphertext.',
+        crossTunnel: 'Tunnel (default)',
+        crossDirect: 'Direct (no third party)',
+        crossTunnelOn: 'Enable tunnel',
+        crossTunnelOff: 'Disable tunnel',
+        crossDirectOn: 'Enable direct',
+        crossDirectOff: 'Disable direct',
+        crossStarting: 'Starting…',
+        crossDownloading: 'Downloading cloudflared (once)',
+        crossIdle: 'Off',
+        crossReady: 'Ready',
+        crossFailed: 'Unavailable',
+        crossUrl: 'Public address',
+        crossFingerprint: 'Certificate fingerprint',
+        crossAddrNone: 'No address on this machine is likely reachable directly (no global IPv6, no public IPv4). Use the tunnel.',
+        crossAddrNote: 'Direct opens one port on the public internet; only requests with the right key that decrypt are accepted.',
+        crossPairing: 'Pairing string (paste it on the phone)',
+        crossPairHint: 'Phone: Connect to PC → Paste pairing string. No address or key to copy by hand.',
+        crossUninstall: 'Clear downloaded components',
+        crossUninstalling: 'Clearing…',
+        crossPurged: 'Removed {n} item(s)',
+        crossPurgeNone: 'Nothing to remove',
+        crossPurgeHint: 'The downloaded binary and the self-signed certificate live in this plugin\'s own folder and go away when it is uninstalled; this is the manual fallback.',
+        crossBinaryMissing: 'cloudflared is missing and the download failed. Install it yourself: {hint}',
+        crossVolatile: 'The tunnel address changes on every restart — paste the pairing string again after it changes.',
+        crossOffWarn: 'Linking is off; start it first to get a room and key.',
       },
     };
 
@@ -320,6 +374,32 @@ window.__ModuleLoader__.load({
         await refresh();
       };
 
+      /** 跨网两个开关：隧道 / 直连，各自独立，用户可以只开一个 */
+      const toggleCross = async (mode) => {
+        // 开关布尔在 cross.enabled 里；cross.tunnel 是状态对象（永远为真），拿它判断会永远显示「关闭」
+        const on = (state?.cross?.enabled ?? {})[mode] === true;
+        setBusy(`cross-${mode}`);
+        setError('');
+        const payload = on
+          ? await call('/mobile-link/cross/stop', { method: 'POST', body: { mode } })
+          : await call('/mobile-link/cross/start', { method: 'POST', body: { mode } });
+        setBusy('');
+        if (payload && payload.ok === false) setError(`${t('opFailed')}${payload?.error ?? 'unknown'}`);
+        await refresh();
+      };
+
+      const purgeCross = async () => {
+        setBusy('purge');
+        const payload = await call('/mobile-link/cross/purge', { method: 'POST', body: {} });
+        setBusy('');
+        if (payload?.ok) {
+          setNotice(payload.purged > 0 ? t('crossPurged', { n: payload.purged }) : t('crossPurgeNone'));
+        } else {
+          setError(`${t('opFailed')}${payload?.error ?? 'unknown'}`);
+        }
+        await refresh();
+      };
+
       if (state === null && error.length === 0) {
         return h('div', { className: 'ml-root' }, h('div', { className: 'ml-muted' }, '…'));
       }
@@ -331,6 +411,16 @@ window.__ModuleLoader__.load({
           ? t('relayOnline')
           : t('relayOffline');
       const devices = state?.devices ?? [];
+
+      const cross = state?.cross ?? {};
+      const tunnel = cross.tunnel ?? { state: 'idle', url: '', installed: false, installHint: '' };
+      const direct = cross.direct ?? { state: 'idle', port: 0, fingerprint: '', addresses: [] };
+      const pairing = cross.pairing ?? {};
+      const tunnelOn = (cross.enabled ?? {}).tunnel === true;
+      const directOn = (cross.enabled ?? {}).direct === true;
+      const directReachable = (direct.addresses ?? []).filter((a) => a.reachable);
+      const crossStateText = (s) => (s === 'ready' ? t('crossReady') : s === 'starting' ? t('crossStarting') : s === 'failed' ? t('crossFailed') : t('crossIdle'));
+      const crossTone = (s) => (s === 'ready' ? 'ok' : s === 'failed' ? 'warn' : 'idle');
 
       return h(
         'div',
@@ -409,6 +499,93 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'ml-card' },
+          h(
+            'div',
+            { className: 'ml-cross-head' },
+            h('div', { className: 'ml-section' }, t('crossTitle')),
+            h(Badge, { tone: crossTone(tunnel.state) }, `${t('crossTunnel')} · ${crossStateText(tunnel.state)}`),
+            h(Badge, { tone: crossTone(direct.state) }, `${t('crossDirect')} · ${crossStateText(direct.state)}`),
+          ),
+          h('div', { className: 'ml-note-body' }, t('crossHint')),
+          state?.enabled
+            ? null
+            : h('div', { className: 'ml-muted' }, t('crossOffWarn')),
+          h(
+            'div',
+            { className: 'ml-pair-actions' },
+            h(
+              'button',
+              {
+                className: tunnelOn ? 'ml-btn ml-btn-danger' : 'ml-btn ml-btn-primary',
+                disabled: busy !== '' || !state?.enabled,
+                onClick: () => toggleCross('tunnel'),
+              },
+              busy === 'cross-tunnel' ? t('crossStarting') : tunnelOn ? t('crossTunnelOff') : t('crossTunnelOn'),
+            ),
+            h(
+              'button',
+              {
+                className: directOn ? 'ml-btn ml-btn-danger' : 'ml-btn ml-btn-primary',
+                disabled: busy !== '' || !state?.enabled,
+                onClick: () => toggleCross('direct'),
+              },
+              busy === 'cross-direct' ? t('crossStarting') : directOn ? t('crossDirectOff') : t('crossDirectOn'),
+            ),
+          ),
+
+          tunnelOn && tunnel.state === 'starting' && !tunnel.installed
+            ? h('div', { className: 'ml-muted' }, t('crossDownloading'))
+            : null,
+          tunnelOn && tunnel.state === 'failed' && !tunnel.installed
+            ? h('div', { className: 'ml-note-body' }, t('crossBinaryMissing', { hint: tunnel.installHint || 'cloudflared' }))
+            : null,
+          tunnel.state === 'ready' && tunnel.url
+            ? h(
+              'div',
+              { className: 'ml-cred' },
+              h(CredRow, { label: t('crossUrl'), value: tunnel.url, copyLabel: t('copy'), copiedLabel: t('copied') }),
+            )
+            : null,
+          tunnel.state === 'ready' ? h('div', { className: 'ml-muted' }, t('crossVolatile')) : null,
+
+          directOn
+            ? h(
+              'div',
+              { className: 'ml-cred' },
+              h(CredRow, { label: t('crossFingerprint'), value: direct.fingerprint ?? '', copyLabel: t('copy'), copiedLabel: t('copied') }),
+              directReachable.length === 0
+                ? h('div', { className: 'ml-muted' }, t('crossAddrNone'))
+                : h(
+                  'ul',
+                  { className: 'ml-devices' },
+                  directReachable.map((a) => h('li', { key: a.url, className: 'ml-device' }, h('div', { className: 'ml-device-main' }, h('div', { className: 'ml-device-name' }, a.url), h('div', { className: 'ml-device-meta' }, a.note)))),
+                ),
+              h('div', { className: 'ml-muted' }, t('crossAddrNote')),
+            )
+            : null,
+
+          (pairing.tunnel || pairing.direct)
+            ? h(
+              'div',
+              { className: 'ml-cred' },
+              h('div', { className: 'ml-section' }, t('crossPairing')),
+              pairing.tunnel ? h(CredRow, { label: t('crossTunnel'), value: pairing.tunnel, copyLabel: t('copy'), copiedLabel: t('copied') }) : null,
+              pairing.direct ? h(CredRow, { label: t('crossDirect'), value: pairing.direct, copyLabel: t('copy'), copiedLabel: t('copied') }) : null,
+              h('div', { className: 'ml-muted' }, t('crossPairHint')),
+            )
+            : null,
+
+          h(
+            'div',
+            { className: 'ml-danger-row' },
+            h('button', { className: 'ml-btn ml-btn-ghost', disabled: busy !== '', onClick: purgeCross }, busy === 'purge' ? t('crossUninstalling') : t('crossUninstall')),
+            h('span', { className: 'ml-muted' }, t('crossPurgeHint')),
+          ),
+        ),
+
+        h(
+          'div',
+          { className: 'ml-card' },
           h('div', { className: 'ml-section' }, `${t('devices')} · ${devices.length}`),
           devices.length === 0
             ? h('div', { className: 'ml-muted' }, t('noDevices'))
@@ -475,7 +652,11 @@ window.__ModuleLoader__.load({
     }
 
     const css = `
-.ml-root { display: flex; flex-direction: column; gap: 14px; padding: 22px 26px 40px; max-width: 720px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.ml-root { display: flex; flex-direction: column; gap: 14px; padding: 22px 26px 40px; max-width: 720px; margin: 0 auto; width: 100%; box-sizing: border-box;
+  /* 面板自己滚：宿主把中栏裁成 overflow:hidden（ui-layout 的 .centerCol），
+     内置面板（如 ConversationRoot 的 .scrollBody）都是 flex:1 + min-height:0 + overflow-y:auto。
+     这里少了这三行，内容一长就被裁掉，且整页谁也滚不动。 */
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .ml-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .ml-title { font-size: 18px; font-weight: 650; letter-spacing: .01em; }
 .ml-sub { font-size: 12.5px; opacity: .62; margin-top: 3px; }
@@ -510,6 +691,7 @@ window.__ModuleLoader__.load({
 .ml-note-title { font-size: 13px; font-weight: 600; }
 .ml-note-body { font-size: 12.5px; opacity: .68; line-height: 1.6; }
 .ml-section { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .55; }
+.ml-cross-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ml-muted { font-size: 12.5px; opacity: .55; }
 .ml-devices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .ml-device { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -550,7 +732,7 @@ window.__ModuleLoader__.load({
         ctx.effect(() => ctx.locale.register(NS, dicts), 'mobile-link: dictionaries');
         ctx.effect(() => {
           const style = document.createElement('style');
-          style.dataset.plugin = '@local/dsh-mobile-link';
+          style.dataset.plugin = 'dsh-mobile-link';
           style.dataset.pluginCss = 'mobile-link/panel';
           style.textContent = css;
           document.head.appendChild(style);
