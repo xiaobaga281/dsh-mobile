@@ -30,8 +30,12 @@ import { resolve as resolvePath } from 'node:path'
 
 const PULL_TIMEOUT_MS = 25_000
 const CALL_TIMEOUT_MS = 30_000
-const MAX_BODY_BYTES = 512 * 1024
+// 一封「带图 prompt」的信封：手机端把 base64 图片塞进正文，再 AES-GCM + base64 套一层，
+// 4 张 1600px 的图大约 4~5 MB。512 KB 的时代只能传输纯文字，图片一律 413。
+const MAX_BODY_BYTES = 6 * 1024 * 1024
 const MAX_QUEUE = 100
+// 单个房间排队帧的字节总量上限：MAX_QUEUE 帧 × 6 MB 会是 600 MB，绝不能只靠条数兜底
+const MAX_ROOM_QUEUE_BYTES = 24 * 1024 * 1024
 const MAX_ROOMS = 2_000
 /** How long an unused room is kept before its state is dropped. */
 const ROOM_IDLE_MS = 12 * 60 * 60 * 1000
@@ -58,6 +62,7 @@ function roomFor(id, keyHash) {
       createdAt: Date.now(),
       touchedAt: Date.now(),
       queue: [],
+      queueBytes: 0,               // 排队帧的正文总量（见 MAX_ROOM_QUEUE_BYTES）
       waiters: new Set(),          // pending pull() responders
       pending: new Map(),          // request id → resolve(call)
       nextId: 1,
@@ -101,11 +106,15 @@ async function readBody(request) {
   if (typeof request?.[Symbol.asyncIterator] !== 'function') return {}
   const chunks = []
   let size = 0
+  let over = false
   for await (const chunk of request) {
     size += chunk.length
-    if (size > MAX_BODY_BYTES) throw Object.assign(new Error('body-too-large'), { status: 413 })
+    // 超限也要把请求体读干净再回 413：读到一半就断，会把客户端的连接池弄脏，
+    // 下一次普通请求会莫名 "fetch failed"（e2e 里真踩过）。
+    if (size > MAX_BODY_BYTES) { over = true; continue }
     chunks.push(chunk)
   }
+  if (over) throw Object.assign(new Error('body-too-large'), { status: 413 })
   if (chunks.length === 0) return {}
   try {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'))
@@ -236,7 +245,10 @@ async function handleRequest(request, response) {
         json(response, 429, { ok: false, error: 'busy' })
         return
       }
-      if (room.hostSeenAt === 0 || Date.now() - room.hostSeenAt > 60_000) {
+      // 45 秒：桌面的轮询是「25 秒挂起 + ≤12 秒退避 + 抖动」，最坏 38 秒左右
+      // 必然刷新一次。阈值 45 秒在真离线与「退避间隙」之间留了余量，
+      // 以前是 60 秒，桌面半分钟没应答手机才开始报「电脑不在线」，体感太钝。
+      if (room.hostSeenAt === 0 || Date.now() - room.hostSeenAt > 45_000) {
         json(response, 503, { ok: false, error: 'host-offline' })
         return
       }
@@ -244,6 +256,13 @@ async function handleRequest(request, response) {
       const id = room.nextId
       room.nextId += 1
       const frame = { id, method: String(body.method ?? 'GET'), path: String(body.path ?? '/'), body: body.body ?? null }
+      // 字节记账按序列化长度算：与真正占的内存同一量级，够用来挡住「大图把队列撑爆」
+      frame.bytes = frame.body === null ? 0 : Buffer.byteLength(JSON.stringify(frame.body))
+      if (room.queueBytes + frame.bytes > MAX_ROOM_QUEUE_BYTES) {
+        json(response, 413, { ok: false, error: 'queue-too-large' })
+        return
+      }
+      room.queueBytes += frame.bytes
       room.queue.push(frame)
       // Waiters exist only while a pull is parked; waking one is enough.
       for (const waiter of room.waiters) {
@@ -260,6 +279,9 @@ async function handleRequest(request, response) {
       })
 
       // Drop every frame this call produced; the phone never re-reads history.
+      for (const item of room.queue) {
+        if (item.id <= id) room.queueBytes = Math.max(0, room.queueBytes - (item.bytes || 0))
+      }
       room.queue = room.queue.filter((item) => item.id > id)
       json(response, answered.status, answered.body ?? { ok: false, error: 'empty' })
       return
