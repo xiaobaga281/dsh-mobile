@@ -6,6 +6,18 @@
 > **rc.162–rc.214 的条目为 README 版本历史的原文归档**（沿用 README 的标题层级与列表风格，
 > 内容一致；下方旧条目仍是早期手写格式。新增版本只写 README，再同步到这里。）
 
+### rc.215（versionCode 215）· 2026-11-06 · 灵动岛可调 + 后台操控不抢屏 + 完全访问真正不再逐条问
+
+- **设置页新增「灵动岛」面板**（设置 → Agent → 灵动岛）：三个滑块 —— **水平位置**（±200px，以摄像头孔心为 0）、**长度**（260–520px，默认 378）、**上下内边距**（0–24px，默认按孔径自动）。拖动即生效、屏幕顶部直接看到；「恢复默认」一键回自动；参数存 localStorage，重启仍在。越界一律夹住（宽度 260–520、位置夹在屏幕内左右各留 6dp），坏 JSON 回退默认。
+- **水平偏移只在收起态生效、展开时线性归中**：卡片窗口宽度固定、不能跟着偏移出屏，所以形状从用户放的位置平滑长成居中卡片、收起再回原位，两边都不跳。展开动画仍是纯 Canvas 插值，窗口零 relayout。
+- **胶囊上下留白改成按孔径比例**（`IslandGeometry.edgePadPx`：孔径 × 7.5%，夹 2–6dp）。旧版是写死的 `EDGE_PAD_PX = 5`，换一台孔更大/更小的手机比例就完全变样。本机 66px 孔径算出来仍是 5px（高度 76px 不变），120px 孔径则是 9px。**边界说清：Android 没有「真实孔径」的公开 API**，`DisplayCutout.boundingRectTop` 给的是含厂商保护边距的外包盒，`0.56` 是实测换算系数 —— 所以留白跟的是「估算出的视觉孔径」，比例关系成立，绝对值有误差。
+- **完全访问真正不再逐条确认（对齐桌面 `permission-presets`）**：桌面 `danger-full-access` 是 `sandbox: danger-full-access` + `approval: 'never'` 两个旋钮一起变；手机端此前只接了 sandbox 这一维，审批这一维没接 —— 开了完全访问，点「删除/支付/发送」或首次打开应用**还是弹卡片**。现在 `danger-full-access` 档在 `PhoneApprovalPolicy` 整层放行（不是「问了自动答应」，也不读不写 grant），降档回标准后恢复逐次确认。设置页在这一档把「危险操作前询问」置灰并说明它不生效。
+- **后台操控不抢用户屏幕**：用户在用手机（屏幕亮 + DSH 不在前台）时，所有会改动屏幕的操作（tap / swipe / scroll / key / gesture / pinch / open_app / launch）**排队不执行**；他一息屏或回到 App，队列自动继续，**不需要点任何东西**。排队时发一条「操控在排队」通知（系统通知未授权时如实写进 hint），5 分钟等不到返回 `APP_USER_BUSY`。只读的 `screen_read` / `phone_screenshot` 不排队；`lock_screen` 自身不排队（否则死等）。
+- **判据换成了第一手事实**：前台包名取自无障碍事件 `TYPE_WINDOW_STATE_CHANGED`（事件驱动、O(1)），不再依赖 `RunService.isAppVisible()` 那个 Activity 标志 —— 实测 HOME 之后它有没及时翻成 false 的窗口，会让排队闸门整个失效。取不到时才回退到标志，再取不到按「在前台」处理（宁可少拦一次）。
+- **踩坑记录：调参第一版走「重建窗口」，拖一下滑块岛就整个消失。** detach + 重建 View + attach 在连续拖动时多个 post 排队，`removeViewImmediate` 与 `addView` 交错，窗口被弄丢。视觉窗口尺寸本来就恒定，改成**就地更新**：只改胶囊的 `layoutParams` / `translationX`、热区窗口的尺寸位置、以及窗口 y（内边距变了要重新垂直居中），40ms 防抖合并连续拖动。另修两处：长度滑块 `step=4` 让 378 落在格点外被吸附成 380（显示差 2px，改 step=2）；恢复默认后面板重绘没重新填标签。
+- **验证（emulator-5554）**：调参探针全绿 —— 基线 `378×76 @ x=362,y=26`、长度 420 + 留白 10 → `420×86`、位置 +80 → `x=442`、恢复默认回基线、越界夹到 `520×114 @ 491..1011`（仍在屏内）。真实拖动（走前端 input 完整链路）`378×76 → 460×90 @ x=321,y=19`，岛全程不消失。后台排队：后台亮屏调用 2.5s 无结果（没偷偷点屏幕）、通知命中、岛照常显示、没把 App 拉前台；息屏后队列继续执行。权限闸门对照：无活跃轮次仍返回 `APP_APPROVAL_UNAVAILABLE`（不静默放行）。几何/动画回归全绿（`jumps=0`、中心 551、展开 `996×213`）。`run-gates static|unit` 全过（642 单测 / 166 工具 / 24 权限）。
+- **发布**：rc.215 按官方 `scripts/publish-release.ps1` 双通道打包；`docs/facts.json` 由 `gen-facts.mjs` 重算。
+
 ### rc.214（versionCode 214）· 2026-11-06 · 操控灵动岛：胶囊贴着孔径、同一个岛原地长成卡片、真动作说真话
 
 - **这一版做的是「操控时屏幕顶部那颗岛」**。它不在 WebView 里，是 `PhoneControlService` 以 `TYPE_ACCESSIBILITY_OVERLAY` 挂的原生悬浮窗；内容、几何、动画全部收在一个插件 `ControlIslandPlugin` 里，服务只当窗口壳（新增 `attachOverlay` / `detachOverlay` / `updateOverlay` 三个宿主方法 + `controlObserver` 观察者，工具线程发事件、插件自己切线程，没有观察者时零开销）。新增 `phone_island` 工具（只读档）用于外部显式改文案/显隐。
