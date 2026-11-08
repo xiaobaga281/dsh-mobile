@@ -1411,6 +1411,41 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.220（versionCode 220）· 2026-11-08 · proot guest 环境补齐：npm 内置 / DNS 注入收口 / 长按复制修对
+
+用户在**真机**上实测出 proot guest 环境「能 exec 但干不了正经事」，逐条核实后落地：
+
+- **npm / npx / node-gyp 内置**（用户实测「只有 node 单二进制，装包要联网、网络又不通」）：
+  新增 `libdshnpm.so` 增量补丁（仿 `libdshgit.so`），由 `scripts/build-npm-patch.py` 从
+  Alpine v3.20 `npm-10.9.1-r0.apk` 可复现地重组为 gzip tar（2.0MB / 2227 成员 / 0 ELF，
+  双 ABI 内容相同）；`ensureNpmPatch()` 在 `prepareProotRootfs()` 三个分支幂等解包。
+  幂等看 `npm-cli.js` **本体**而不是 `/usr/bin/npm` 链接，写独立标记 `.dsh-npm-ready`，
+  解包失败留 `Log.w` + tar 输出 —— 后三条都是 git 补丁的既有欠账。
+  `NEED_RUNTIME:npm` 改为「已由补丁内置、不需要联网」，堵掉「用缺失的入口装它自己」的死循环。
+- **guest DNS 注入收进唯一入口**（用户实测 `getaddrinfo EAI_AGAIN`）：
+  `/etc/resolv.conf` 原先只在 `pkg manager=apk` 分支注入、且排在解包之前 —— 冷启动首次
+  `.dsh-ready` 还不存在，注入直接跳过，pip / npm / node fetch / 终端全漏。现在由
+  `prepareProotRootfs()` 在 rootfs 就绪后统一补，`exec`/`guestExec`/`openGuest` 全覆盖；
+  空列表不再写出「只有换行」的假配置；写失败留日志出口。
+- **loader 变量补齐**：`prootHostEnv()` 补 `PROOT_LOADER_32`，`prootEnv` 缺失时抛可读
+  `NEED_RUNTIME` 而不是把空 `PROOT_LOADER` 交给 proot 回退 Termux 硬编码路径。
+- **真机诊断探针**：新增 `.motion/verify/diagnose-guest.mjs`，一次取回 guest 内
+  `/dev` 内容与 `null/zero/urandom` 可写性、`resolv.conf`、`dns.lookup`、`git init` 现场、
+  npm/npx 版本与 registry 出网。代码上有 `-b /dev` 不等于真机 bind 生效
+  （SELinux / ROM devtmpfs），真机现象一律以探针现场为准，不再用静态推断否定。
+- **长按复制修对**（用户实测「圈了半句，复制出来是全部」）：整条复制链路原先没读过
+  `window.getSelection()` —— 长按面板无条件 `copyText(node.text)`（整条消息），兜底更把整块
+  `.msg` 的 `textContent`（思考行/工具行/时间戳）塞进剪贴板；且 480ms 的自定义面板
+  早于 WebView 系统选词（约 500ms）弹出。现在「选什么复制什么」：`selectedTextIn()` +
+  纯函数 `copyDecision()`，两个复制入口统一走它；选择手势期间不弹面板（阈值 650ms）；
+  面板文案改为「复制整条消息」；兜底保存/恢复选区。代码块复制按钮保持原语义。
+- **守卫与验收**：新增 `scroll-timeline` / `sheet-route` 之外，`guest-base-env.test.mjs`、
+  `npm-patch.test.mjs`、`selection-copy.test.mjs`（含 6 条真实源码行为断言）；
+  `verify-base-env.mjs` 增加 `pkg manager=npm --version` 与 `config get registry` 真机断言。
+- 验证：全量 JVM 单测 BUILD SUCCESSFUL、37/37 web 回归、5 个静态 gate、
+  `assembleRelease` 成功；两个 complete ABI 的 APK 内 `lib/<abi>/libdshnpm.so` 均为
+  2,034,022 B / sha256 `37c576b79b70` / gzip 魔数 `1f8b`，与生成产物一致。
+
 ### rc.219（versionCode 219）· 2026-11-07 · 触感修复：一次手势只振一下（点「＋」双振的根因 + 全仓 18 处同类）
 
 - **双振根因**：`openSheet()` 每次弹出自带一记触感，而按钮 handler 又各自 `haptic()` 一次 —— 点「＋」= handler 一记 + 面板弹出一记，用户感到「振两下」。审计出**全仓 18 处**同类组合（＋/模式条/存储行/任务详情/语音入口/角色编辑/计划卡等），凡是「开了面板」的按钮都中招。
@@ -1454,6 +1489,7 @@ Agent 无法跨格式保持视觉一致性。
 - **验证**：`run-gates static|unit` 全绿（**628 单测** / 166 工具 / 24 权限），web-regress 34/34；设备探针 `probe-island.mjs` / `probe-island-tune.mjs` 全绿（基线 `378×76 @ x=362,y=26`、`dy+60 → y=86`、`4.2s 还在 / 8.4s 已收`、前后台切换、越界夹取）；`probe-island.mjs` 的 `translationX` 守卫按新架构改为「只许设置页偏移、不许切换补偿」，`adb` 改绝对路径不再依赖 PATH。
 - **发布**：rc.216 按官方 `scripts/publish-release.ps1` 双通道打包（版本唯一真源 `version.properties`、badging + `apksigner` 签名校验、sha256、生成 `release-manifest.json`）。**2026-11-06 已上线**，`latest` 指向 `rc.216`（已核）；两只 APK 的 `sha256` 由 GitHub 资产 digest 反查一致（完整包 203,056,815 B / 标准包 41,406,971 B —— 删掉内置语音模型后各比 rc.215 小约 34MB），清单在 `../dsh-mobile-release/release-manifest.json`。文档站 README / CHANGELOG 已同步 rc.216；按惯例删除了 rc.215 release（正文存档到 `release-notes-archive/rc.215.md`，tag 一并删除，两只 APK 移到 `apk-archive/`）；**GitHub Releases 现在只剩 v0.2.1（首版）+ rc.216**。
 
+
 ### rc.215（versionCode 215）· 2026-11-06 · 灵动岛可调 + 后台操控不抢屏 + 完全访问真正不再逐条问
 
 - **设置页新增「灵动岛」面板**（设置 → Agent → 灵动岛）：三个滑块 —— **水平位置**（±200px，以摄像头孔心为 0）、**长度**（260–520px，默认 378）、**上下内边距**（0–24px，默认按孔径自动）。拖动即生效、屏幕顶部直接看到；「恢复默认」一键回自动；参数存 localStorage，重启仍在。越界一律夹住（宽度 260–520、位置夹在屏幕内左右各留 6dp），坏 JSON 回退默认。
@@ -1465,6 +1501,7 @@ Agent 无法跨格式保持视觉一致性。
 - **踩坑记录：调参第一版走「重建窗口」，拖一下滑块岛就整个消失。** detach + 重建 View + attach 在连续拖动时多个 post 排队，`removeViewImmediate` 与 `addView` 交错，窗口被弄丢。视觉窗口尺寸本来就恒定，改成**就地更新**：只改胶囊的 `layoutParams` / `translationX`、热区窗口的尺寸位置、以及窗口 y（内边距变了要重新垂直居中），40ms 防抖合并连续拖动。另修两处：长度滑块 `step=4` 让 378 落在格点外被吸附成 380（显示差 2px，改 step=2）；恢复默认后面板重绘没重新填标签。
 - **验证（emulator-5554）**：调参探针全绿 —— 基线 `378×76 @ x=362,y=26`、长度 420 + 留白 10 → `420×86`、位置 +80 → `x=442`、恢复默认回基线、越界夹到 `520×114 @ 491..1011`（仍在屏内）。真实拖动（走前端 input 完整链路）`378×76 → 460×90 @ x=321,y=19`，岛全程不消失。后台排队：后台亮屏调用 2.5s 无结果（没偷偷点屏幕）、通知命中、岛照常显示、没把 App 拉前台；息屏后队列继续执行。权限闸门对照：无活跃轮次仍返回 `APP_APPROVAL_UNAVAILABLE`（不静默放行）。几何/动画回归全绿（`jumps=0`、中心 551、展开 `996×213`）。`run-gates static|unit` 全过（642 单测 / 166 工具 / 24 权限）。
 - **发布**：rc.215 按官方 `scripts/publish-release.ps1` 双通道打包；`docs/facts.json` 由 `gen-facts.mjs` 重算。**2026-11-06 已上线**，`latest` 指向 `rc.215`（已核）；两只 APK 的 `sha256` 由 GitHub 资产 digest 反查一致（完整包 238,332,889 B / 标准包 76,683,073 B），清单在 `../dsh-mobile-release/release-manifest.json`。文档站 README / CHANGELOG 已同步 rc.215。按惯例删除了 rc.213 / rc.214 两个 release（正文存档到 `release-notes-archive/rc.213.md` / `rc.214.md`，tag 一并删除；两只 APK 的本机副本在 `apk-archive/`）；**GitHub Releases 现在只剩 v0.2.1（首版）+ rc.215**。
+
 
 ### rc.214（versionCode 214）· 2026-11-06 · 操控灵动岛：胶囊贴着孔径、同一个岛原地长成卡片、真动作说真话
 
