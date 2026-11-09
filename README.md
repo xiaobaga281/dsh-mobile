@@ -1411,6 +1411,36 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.222（versionCode 222）· 2026-11-09 · 读屏补齐节点树 / 缓存 / 批量动作 / res_id / 操作 diff
+
+用户真机实测「`screen_read` 返回 `elements: []`，只能靠坐标 + 截图，又慢又容易点错」，核查后是四处叠加：
+
+- **根集合**（`contentRoots`）：`rootInActiveWindow == null` 时直接 return，连 `windows` 都不读；
+  且只合「与活跃根同包」的窗口 —— 输入法/系统弹窗置顶时真正的应用窗口全丢。现在活跃根为空继续读
+  `windows`，按 layer 收前 4 个非自身、非 IME 窗口（新增 `imePackages` 识别输入法），一个根都没有时
+  给可读的 `window_note`。
+- **可见性**（`walk`）：`isVisibleToUser` 从**准入条件**降级为输出字段 `visible` —— WebView / Compose
+  自绘 / 部分国产 ROM 会对整树返回 false，以前节点被整片丢弃；预算改成按可见节点计，遍历总数另设
+  上限防病态深树。
+- **字段与节点树**：新增 `res_id`（全名 `pkg:id/name`，不再只剩末段）、`cd`（contentDescription 独立
+  字段）、`pkg`、`depth`、`visible`；`screen_read` 新增 **`nodes`** 结构化节点树（可见节点 + 带 id/文本的
+  不可见节点，上限 400）。很多控件（微信输入框、列表项）没有 `clickable` 但有 `resource-id` —— 以前
+  只进 `texts`（纯字符串、无 id/bounds），模型只能坐标蒙。
+- **缓存与批量**：按 epoch（无障碍事件代数）缓存整份 JSON，同屏重复读直接命中并返回 `cached:true`
+  （命中仍刷新 snapshot token，避免 LRU 挤掉后 index 定位失效，缓存键含 `maxElements`）；
+  新增 `phone_batch`（≤8 步，`tap`/`type`/`wait`/`swipe`/`scroll`/`open_app`），中途不回传、末尾给每步
+  结果 + 整批 diff，失败即停并回 `stopped_at`，步间按动作类型节流（点击 220ms / 输入 90ms），
+  登记为 `rw`，只读档直接拒绝。
+- **操作回执带 diff**：`ScreenOutline.diff` 纯函数（`pkg|res_id|cls|bounds` 配对，报告
+  added/removed/changed + same）；`withUiCheck` 动作前取轻量指纹、界面确实变化时附降 diff；
+  `screen_read` 新增 `since=<token>` 可主动要比对。
+- **顺手修一个真 bug**：`elementSnaps`（element 下标 → snap 下标）早就备好却从未被生产代码使用，
+  `Snap` 存的是全量节点 —— `elements[0]` 是第一个可交互元素、`nodes[0]` 可能是标题 TextView，
+  `index=0` 会点错控件；现在 `Snap` 存 `elementNodes`。
+- 验证：`ScreenOutlineTest` 12 条（新增 nodes / res_id / 不可见节点 / diff 增删改 6 条）、
+  全量 JVM 单测 BUILD SUCCESSFUL、42/42 web 回归、静态 gate 全绿；新增 `device-tree.test.mjs`
+  守住上述每一处。**无障碍的真实行为无法在 JVM/模拟器上判定，仍需真机复核。**
+
 ### rc.221（versionCode 221）· 2026-11-09 · loader 真机根因 / 自升级闭环 / guest node 22 LTS
 
 - **PROOT_LOADER 真机根因修对（推翻上一版的「误报」判定）**：用户真机实测「loader was not found」，

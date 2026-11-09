@@ -6,6 +6,38 @@
 > **rc.162–rc.214 的条目为 README 版本历史的原文归档**（沿用 README 的标题层级与列表风格，
 > 内容一致；下方旧条目仍是早期手写格式。新增版本只写 README，再同步到这里。）
 
+> **rc.222 的条目为 README 版本历史的原文归档**（沿用 README 的标题层级与列表风格，内容一致；新增版本只写 README，再同步到这里。）
+
+### rc.222（versionCode 222）· 2026-11-09 · 读屏补齐节点树 / 缓存 / 批量动作 / res_id / 操作 diff
+
+用户真机实测「`screen_read` 返回 `elements: []`，只能靠坐标 + 截图，又慢又容易点错」，核查后是四处叠加：
+
+- **根集合**（`contentRoots`）：`rootInActiveWindow == null` 时直接 return，连 `windows` 都不读；
+  且只合「与活跃根同包」的窗口 —— 输入法/系统弹窗置顶时真正的应用窗口全丢。现在活跃根为空继续读
+  `windows`，按 layer 收前 4 个非自身、非 IME 窗口（新增 `imePackages` 识别输入法），一个根都没有时
+  给可读的 `window_note`。
+- **可见性**（`walk`）：`isVisibleToUser` 从**准入条件**降级为输出字段 `visible` —— WebView / Compose
+  自绘 / 部分国产 ROM 会对整树返回 false，以前节点被整片丢弃；预算改成按可见节点计，遍历总数另设
+  上限防病态深树。
+- **字段与节点树**：新增 `res_id`（全名 `pkg:id/name`，不再只剩末段）、`cd`（contentDescription 独立
+  字段）、`pkg`、`depth`、`visible`；`screen_read` 新增 **`nodes`** 结构化节点树（可见节点 + 带 id/文本的
+  不可见节点，上限 400）。很多控件（微信输入框、列表项）没有 `clickable` 但有 `resource-id` —— 以前
+  只进 `texts`（纯字符串、无 id/bounds），模型只能坐标蒙。
+- **缓存与批量**：按 epoch（无障碍事件代数）缓存整份 JSON，同屏重复读直接命中并返回 `cached:true`
+  （命中仍刷新 snapshot token，避免 LRU 挤掉后 index 定位失效，缓存键含 `maxElements`）；
+  新增 `phone_batch`（≤8 步，`tap`/`type`/`wait`/`swipe`/`scroll`/`open_app`），中途不回传、末尾给每步
+  结果 + 整批 diff，失败即停并回 `stopped_at`，步间按动作类型节流（点击 220ms / 输入 90ms），
+  登记为 `rw`，只读档直接拒绝。
+- **操作回执带 diff**：`ScreenOutline.diff` 纯函数（`pkg|res_id|cls|bounds` 配对，报告
+  added/removed/changed + same）；`withUiCheck` 动作前取轻量指纹、界面确实变化时附降 diff；
+  `screen_read` 新增 `since=<token>` 可主动要比对。
+- **顺手修一个真 bug**：`elementSnaps`（element 下标 → snap 下标）早就备好却从未被生产代码使用，
+  `Snap` 存的是全量节点 —— `elements[0]` 是第一个可交互元素、`nodes[0]` 可能是标题 TextView，
+  `index=0` 会点错控件；现在 `Snap` 存 `elementNodes`。
+- 验证：`ScreenOutlineTest` 12 条（新增 nodes / res_id / 不可见节点 / diff 增删改 6 条）、
+  全量 JVM 单测 BUILD SUCCESSFUL、42/42 web 回归、静态 gate 全绿；新增 `device-tree.test.mjs`
+  守住上述每一处。**无障碍的真实行为无法在 JVM/模拟器上判定，仍需真机复核。**
+
 ### rc.219（versionCode 219）· 2026-11-07 · 触感修复：一次手势只振一下（点「＋」双振的根因 + 全仓 18 处同类）
 
 - **双振根因**：`openSheet()` 每次弹出自带一记触感，而按钮 handler 又各自 `haptic()` 一次 —— 点「＋」= handler 一记 + 面板弹出一记，用户感到「振两下」。审计出**全仓 18 处**同类组合（＋/模式条/存储行/任务详情/语音入口/角色编辑/计划卡等），凡是「开了面板」的按钮都中招。
