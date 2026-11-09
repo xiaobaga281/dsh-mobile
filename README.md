@@ -1411,6 +1411,40 @@ Agent 无法跨格式保持视觉一致性。
 > 历史条目按**当时状态**如实记录；后续版本把某项改动推翻或收回时，会在该条目追加「**※ 现状**」标注 ——
 > 以免读者照着旧条目找功能。最新状态以「功能总览」与最近一条条目为准。
 
+### rc.221（versionCode 221）· 2026-11-09 · loader 真机根因 / 自升级闭环 / guest node 22 LTS
+
+- **PROOT_LOADER 真机根因修对（推翻上一版的「误报」判定）**：用户真机实测「loader was not found」，
+  手动 `export PROOT_LOADER=/data/app/.../lib/<abi>/libdshloader.so` 后 guest 的 node/python 全部恢复。
+  核查发现环境变量**一直有设，但值不可用** —— 指向 `filesDir/runtime/proot/loader` 这个符号链接，
+  proot 注入 guest 前要 open/mmap 该 ELF，真机上这一层过不去；二进制里硬编码的 Termux 路径只是
+  「没覆盖时的兜底」，报错文案相同才容易误判。现在 `ProotEnv` 同时持有 nativeLibraryDir，
+  `loader/loader32` 优先返回**真实 .so 文件**；装配后自检可读非空并 `Log.i` 打印实际值
+  （`adb logcat -s DSHRuntime`）；`relink()` 不再静默吞异常（用 NOFOLLOW_LINKS）；启动前再验一次，
+  失败转成可读 `NEED_RUNTIME:proot`。守卫 `proot-loader.test.mjs`。
+- **应用内自升级闭环（预编译 APK 之前「下好了装不上」）**：检查/下载/安装 Intent/FileProvider/
+  签名校验/前台服务/7 态面板早就有，断在 **Android 8+ 逐应用授权** —— 侧载时给浏览器开过的
+  「安装未知应用」不等于给 DSH Mobile 开过，`ACTION_VIEW` 被静默拦掉；旧代码还在 startActivity
+  后立刻清掉「下载完成·点此安装」通知，连兜底入口都没了。现在：`canInstall()` 门禁 +
+  `ACTION_MANAGE_UNKNOWN_APP_SOURCES` 引导、新增「还差一步授权」面板（去设置 / 已打开继续装）、
+  门禁失败不清通知且通知 PendingIntent 同样过门禁、`downloadedFile()` 改为扫缓存目录（进程被回收后
+  已下载的包照样装得上）、`pickAsset()` 按 flavor + `SUPPORTED_ABIS` 精确挑包（rc.220 起资产名
+  已不含 `complete`，旧逻辑可能挑错通道/ABI）。守卫 `update-install.test.mjs`。
+  **平台边界**：Android 非 root 应用必须经系统安装器由用户确认，做不到桌面 electron-updater 那种
+  `quitAndInstall()` 静默替换；且这些修复要先进一个手动安装的版本，装了 rc.221 之后从 rc.222 起
+  才能真正应用内自升级。
+- **guest node 20 → 22 LTS（v22.23.4）**：基础 rootfs 的 node 20.15.1 与一整套 musl 共享库
+  （libuv/libicu/libbrotli/…）绑死，官方 nodejs.org 的 linux 二进制是 glibc 跑不了，换 Alpine 自带包
+  又等于重建 100MB+ 主载荷。改为 `libdshnode.so` 增量补丁：取 unofficial-builds 的 `*-musl`
+  半静态构建（DT_NEEDED 只剩 `ld-musl-*.so.1` 与 `libgcc_s.so.1`，基础 rootfs 已有），**只留
+  `bin/node`**（官方 tar 自带 npm/corepack 会与 `libdshnpm.so` 冲突），由
+  `scripts/build-node-patch.py` 可复现地生成 xz tar（各约 30MB / ABI）。
+  `ensureNodePatch()` 在 `prepareProotRootfs()` 三个分支幂等解包，之后**原子 rename 覆盖
+  `/usr/bin/node`** —— 失败时旧 node 20 原封不动，只算「没升级」，不会让 guest 连 node 都没有。
+  npm 仍由 `libdshnpm.so` 提供（engines `>=20.5.0`，兼容 22），shebang 走 PATH 命中新 node。
+  真机验收新增 `process.version` v22 断言，守卫 `node-patch.test.mjs`。
+- 验证：全量 JVM 单测 BUILD SUCCESSFUL、40/40 web 回归、5 个静态 gate 全绿；
+  三份增量载荷（git / npm / node）均可由脚本 `--check` 离线复验。
+
 ### rc.220（versionCode 220）· 2026-11-08 · proot guest 环境补齐：npm 内置 / DNS 注入收口 / 长按复制修对
 
 用户在**真机**上实测出 proot guest 环境「能 exec 但干不了正经事」，逐条核实后落地：
