@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- present 交付物用 FileProvider 暴露工作区文件：只开放 files/workspace 这一个目录 -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="workspace" path="workspace/" />
+    <!-- 更新包：下载在 cacheDir/updates，装的时候用 FileProvider 交给系统安装器 -->
+    <cache-path name="updates" path="updates/" />
+</paths>

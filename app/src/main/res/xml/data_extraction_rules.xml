@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ 备份与设备迁移规则。
+  自造插件、工作区、语音模型、语音缓存全部排除：卸载应用时随应用私有目录一起删除，
+  迁移到新设备也不会把插件（可能含 Agent 写的代码）与语音缓存带过去。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="asr-pro/" />
+        <exclude domain="file" path="tts-neural/" />
+        <exclude domain="file" path="voice-cache/" />
+        <exclude domain="file" path="kernel/" />
+        <exclude domain="file" path="workspace/" />
+        <exclude domain="file" path="voice/" />
+        <!-- 凭据（中继口令 / 账号 token / 宿主 token）不随云备份或换机迁移 -->
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="asr-pro/" />
+        <exclude domain="file" path="tts-neural/" />
+        <exclude domain="file" path="voice-cache/" />
+        <exclude domain="file" path="kernel/" />
+        <exclude domain="file" path="workspace/" />
+        <exclude domain="file" path="voice/" />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

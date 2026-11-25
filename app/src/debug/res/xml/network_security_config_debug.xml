@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- debug 专用网络安全配置（由 src/debug/AndroidManifest.xml 的 networkSecurityConfig 引用）。
+     只放行本机/模拟器回环地址的明文连接：
+       · localhost / 127.0.0.1 —— 本机 MCP 与 adb reverse 后的宿主端口
+       · 10.0.2.2            —— Android 模拟器访问宿主机
+     刻意不做通配：局域网明文宿主在 debug 也不放行（用 https 或中继）。
+     主源集同名资源 network_security_config.xml 保持"全禁明文"，release 生效。 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

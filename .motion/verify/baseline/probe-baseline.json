@@ -1,0 +1,355 @@
+{
+  "probe": "motion_probe.mjs",
+  "probeVersion": "1.0.0",
+  "label": "baseline",
+  "generatedAt": "2026-10-24T13:55:37.278Z",
+  "durationMs": 17293,
+  "env": {
+    "url": "https://appassets.androidplatform.net/assets/web/index.html?theme=dark",
+    "title": "DeepSeek",
+    "viewport": {
+      "w": 412,
+      "h": 915,
+      "dpr": 2.625
+    },
+    "ua": "Mozilla/5.0 (Linux; Android 16; sdk_gphone64_x86_64 Build/BE2A.250530.026.F3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/133.0.6943.137 Mobile Safari/537.36",
+    "chromeVersion": "133.0.6943.137",
+    "motionRuntime": {
+      "present": false,
+      "legacy": null,
+      "reduced": null,
+      "hasDragApi": false,
+      "presets": null
+    },
+    "reducedMotionPref": false,
+    "cssMechanism": {
+      "tabIndicator": {
+        "transition": "transform 0.46s cubic-bezier(0.32, 0.72, 0, 1), width 0.34s cubic-bezier(0.32, 0.72, 0, 1)",
+        "willChange": "auto"
+      },
+      "sheet": {
+        "transition": "transform 0.44s cubic-bezier(0.32, 0.72, 0, 1)"
+      },
+      "sheetBackdrop": {
+        "transition": "opacity 0.26s cubic-bezier(0.33, 0.74, 0.2, 1)"
+      },
+      "sessionItem": {
+        "transition": "background 0.16s, transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)"
+      },
+      "tab": {
+        "transition": "color 0.22s, font-weight 0.2s"
+      }
+    },
+    "target": {
+      "id": "D7ECDD1D3636275CC91C19E2354E8FB4",
+      "title": "DeepSeek",
+      "url": "https://appassets.androidplatform.net/assets/web/index.html?theme=dark"
+    }
+  },
+  "input": {
+    "trusted": true,
+    "method": "Input.dispatchTouchEvent",
+    "note": "使用 CDP Input.dispatchTouchEvent 合成可信触摸，浏览器按真实手势处理"
+  },
+  "measurements": {
+    "press": {
+      "target": "#sessionsScroll .sess-row .session-item",
+      "reps": 5,
+      "responded": 0,
+      "respondedPct": 0,
+      "note": "按压期间逐帧采样未观察到任何 transform/opacity/background 变化：此版本没有按压视觉反馈",
+      "latencyMs": {
+        "median": null,
+        "min": null,
+        "max": null,
+        "samples": [],
+        "note": "从页面收到 pointerdown 到首帧出现视觉变化；受 rAF 采样分辨率(~16.7ms)限制"
+      },
+      "inlineStyleMs": {
+        "median": 87.8,
+        "samples": [
+          284.4,
+          68.9,
+          105.7,
+          87.8,
+          71.7
+        ],
+        "note": "首个 style/class 属性突变时间（仅 JS 驱动时可得）"
+      },
+      "runs": [
+        {
+          "responded": false,
+          "firstFrameMs": null,
+          "handlerMs": 284.4,
+          "changedProps": [],
+          "delta": null
+        },
+        {
+          "responded": false,
+          "firstFrameMs": null,
+          "handlerMs": 68.9,
+          "changedProps": [],
+          "delta": null
+        },
+        {
+          "responded": false,
+          "firstFrameMs": null,
+          "handlerMs": 105.7,
+          "changedProps": [],
+          "delta": null
+        },
+        {
+          "responded": false,
+          "firstFrameMs": null,
+          "handlerMs": 87.8,
+          "changedProps": [],
+          "delta": null
+        },
+        {
+          "responded": false,
+          "firstFrameMs": null,
+          "handlerMs": 71.7,
+          "changedProps": [],
+          "delta": null
+        }
+      ]
+    },
+    "tabIndicator": {
+      "target": "#tabIndicator",
+      "transitions": [
+        {
+          "from": "sessions",
+          "to": "jobs",
+          "x": {
+            "ok": true,
+            "settled": true,
+            "samples": 56,
+            "start": 6.38,
+            "final": 93.19,
+            "travel": 86.81,
+            "settleMs": 466.7,
+            "motionStartMs": 116.6,
+            "settleFromMotionMs": 350.1,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "width": {
+            "ok": true,
+            "noTravel": true,
+            "settled": true,
+            "samples": 56,
+            "start": 74.81,
+            "final": 74.81,
+            "travel": 0,
+            "settleMs": null,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "maxJitter": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "downT": 2551117.4
+        },
+        {
+          "from": "jobs",
+          "to": "files",
+          "x": {
+            "ok": true,
+            "settled": true,
+            "samples": 58,
+            "start": 93.19,
+            "final": 180,
+            "travel": 86.81,
+            "settleMs": 466.6,
+            "motionStartMs": 116.7,
+            "settleFromMotionMs": 349.9,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "width": {
+            "ok": true,
+            "noTravel": true,
+            "settled": true,
+            "samples": 58,
+            "start": 74.81,
+            "final": 74.81,
+            "travel": 0,
+            "settleMs": null,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "maxJitter": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "downT": 2552300.6
+        },
+        {
+          "from": "files",
+          "to": "settings",
+          "x": {
+            "ok": true,
+            "settled": true,
+            "samples": 58,
+            "start": 180,
+            "final": 266.81,
+            "travel": 86.81,
+            "settleMs": 466.7,
+            "motionStartMs": 116.6,
+            "settleFromMotionMs": 350.1,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "width": {
+            "ok": true,
+            "noTravel": true,
+            "settled": true,
+            "samples": 58,
+            "start": 74.81,
+            "final": 74.81,
+            "travel": 0,
+            "settleMs": null,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "maxJitter": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "downT": 2553483.3
+        },
+        {
+          "from": "settings",
+          "to": "sessions",
+          "x": {
+            "ok": true,
+            "settled": true,
+            "samples": 56,
+            "start": 266.81,
+            "final": 6.38,
+            "travel": -260.43,
+            "settleMs": 516.7,
+            "motionStartMs": 133.4,
+            "settleFromMotionMs": 383.3,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "width": {
+            "ok": true,
+            "noTravel": true,
+            "settled": true,
+            "samples": 56,
+            "start": 74.81,
+            "final": 74.81,
+            "travel": 0,
+            "settleMs": null,
+            "overshootPx": 0,
+            "overshootPct": 0,
+            "maxJitter": 0,
+            "peakMs": null,
+            "peakValue": null
+          },
+          "downT": 2554668.6999999997
+        }
+      ],
+      "summary": {
+        "settleMsMedianX": 466.7,
+        "motionStartMsMedian": 116.6,
+        "overshootPxMax": 0,
+        "settleMsMedianW": null
+      }
+    },
+    "sheetOpen": {
+      "target": "#rowModels → #sheet",
+      "opened": {
+        "on": true,
+        "title": "模型",
+        "items": 6
+      },
+      "y": {
+        "ok": true,
+        "settled": true,
+        "samples": 67,
+        "start": 559.61,
+        "final": 0,
+        "travel": -559.61,
+        "settleMs": 783.3,
+        "motionStartMs": 349.9,
+        "settleFromMotionMs": 433.4,
+        "overshootPx": 5.58,
+        "overshootPct": 1,
+        "peakMs": 583.3,
+        "peakValue": -5.58
+      },
+      "backdropOpacityPct": {
+        "ok": true,
+        "settled": true,
+        "samples": 67,
+        "start": 0,
+        "final": 100,
+        "travel": 100,
+        "settleMs": 533.3,
+        "motionStartMs": 349.9,
+        "settleFromMotionMs": 183.4,
+        "overshootPx": 0,
+        "overshootPct": 0,
+        "peakMs": null,
+        "peakValue": null
+      }
+    },
+    "swipeRelease": {
+      "target": "#sessionsScroll .sess-row .session-item",
+      "finalState": {
+        "isSwiped": true,
+        "inline": "",
+        "computed": "matrix(1, 0, 0, 1, -214, 0)"
+      },
+      "release": {
+        "settleMs": 466.6,
+        "finalX": -214,
+        "overshootPx": 1.59,
+        "settled": true,
+        "samples": 67,
+        "note": "从 pointerup 到位移稳定在 ±0.5px 内"
+      },
+      "drag": {
+        "expectedLinearity": "元素位移应等于手指位移（1:1）",
+        "frames": 30,
+        "meanAbsErrorPx": 112.97,
+        "maxAbsErrorPx": 260,
+        "linearRegionMeanErrPx": 70.29,
+        "linearRegionMaxErrPx": 208,
+        "within8pxPct": 10,
+        "minXReached": -228,
+        "clampExpected": -228,
+        "pressOverlayFrames": 19,
+        "pressOverlayPct": 63,
+        "note": "linearRegion 指手指位移未超过 -214 的跟手区间；pressOverlayFrames 是 transform 被按压 scale/skew 覆盖、translateX 丢失的帧数"
+      }
+    }
+  },
+  "frames": {
+    "frames": 1027,
+    "fpsAvg": 59.7,
+    "long25": 4,
+    "long50": 0,
+    "worstMs": 50,
+    "p50": 16.7,
+    "p95": 16.8,
+    "p99": 16.8
+  },
+  "longTasks": {
+    "count": 0,
+    "totalMs": 0,
+    "worstMs": 0,
+    "entries": []
+  },
+  "warnings": [],
+  "errors": []
+}

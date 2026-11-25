@@ -1,0 +1,278 @@
+# Android CI —— 对照桌面 DSH 的 ci.yml / e2e.yml 收敛出的三条 lane。
+#
+# 设计原则（与桌面一致）：
+#   * 本地只跑与改动相关的 gate；CI 独占穷举：编译、lint、全量单测、设备测试。
+#   * 所有 Gradle 调用共用 setup-gradle 的依赖缓存；内网/自托管 runner 可通过
+#     仓库变量 GRADLE_ARGS=--offline 切到离线模式（缓存需先预热一次）。
+#   * 文档事实（docs/facts.json）与代码/清单的一致性属于 static lane，
+#     失败即 PR 红：README 的版本/工具数/权限/APK 数字不再靠人记。
+#   * instrumented lane 只在存在 app/src/androidTest 时启动模拟器，避免空跑
+#     烧掉 40 分钟；有测试后自动生效。
+#
+# 本地等价命令：
+#   node scripts/gates/run-gates.mjs static --no-gradle
+#   node scripts/gates/run-gates.mjs unit --offline
+#   node scripts/gates/run-gates.mjs instrumented
+
+name: android-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # vars.GRADLE_ARGS 留空=在线；自托管/内网设 --offline（配合预热的 Gradle 缓存）
+  GRADLE_ARGS: ${{ vars.GRADLE_ARGS }}
+  GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+  # 不覆盖 ANDROID_HOME：GitHub 托管 runner 自带 Android SDK，
+  # 覆盖成不存在的路径会让 AGP 直接失败。
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1) static：秒级；文档事实 + lint。不需要设备/模拟器。
+  # ---------------------------------------------------------------------------
+  static:
+    name: static (facts + lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      # 事实门：gen-facts --check 逐字节比对；verify-facts 交叉核对真源，
+      # --check-readme 同时拒绝 README 里手写的「权限仅 INTERNET/VIBRATE」。
+      - name: Facts gate
+        run: |
+          node scripts/gen-facts.mjs --check
+          node scripts/verify-facts.mjs --check-readme
+
+      - name: Web regression guards
+        run: node scripts/regress/run-all.mjs
+
+      - name: Android lint
+        # flavor 拆分后没有 lintDebug：standard 通道先跑
+        run: ./gradlew :app:lintStandardDebug $GRADLE_ARGS --no-daemon --console=plain
+
+      - name: Upload lint report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-standardDebug.html
+
+  # ---------------------------------------------------------------------------
+  # 2) unit：JVM 单测（JUnit XML 汇总），产物留档。
+  # ---------------------------------------------------------------------------
+  unit:
+    name: unit (testStandardDebugUnitTest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Unit tests
+        # flavor 拆分后任务名带 flavor：standard 通道跑 JVM 单测（纯逻辑，无 flavor 依赖）
+        run: ./gradlew testStandardDebugUnitTest $GRADLE_ARGS --no-daemon --console=plain
+
+      # 不信任 Gradle 退出码之外的信号：直接解析 JUnit XML 汇总通过/失败/跳过
+      - name: Unit summary + facts gate
+        run: node scripts/gates/run-gates.mjs unit --no-gradle --keep-going
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/test-results/testStandardDebugUnitTest/
+
+  # ---------------------------------------------------------------------------
+  # 3) complete：targetSdk 28 + rootfs 的完整通道 —— 以前 CI 从不编译，
+  #    flavor 拆分/rootfs 打包坏了也发现不了。这里至少构建 debug 包。
+  # ---------------------------------------------------------------------------
+  complete:
+    name: complete flavor build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Assemble complete debug
+        run: ./gradlew :app:assembleCompleteDebug $GRADLE_ARGS --no-daemon --console=plain
+
+  # ---------------------------------------------------------------------------
+  # 3) instrumented：设备/模拟器上的 androidTest。当前仓库还没有 androidTest
+  #    源，因此先探测目录；有测试后这里会自动启动 API 35 模拟器执行。
+  # ---------------------------------------------------------------------------
+  instrumented:
+    name: instrumented (API 35)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Probe androidTest sources
+        id: probe
+        run: |
+          if [ -d app/src/androidTest ]; then
+            echo "has=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::app/src/androidTest 不存在，跳过设备测试（补上测试后自动生效）"
+          fi
+
+      - name: Cache AVD
+        if: steps.probe.outputs.has == '1'
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/avd
+          key: avd-api35-atd-${{ runner.os }}
+
+      - name: Run instrumented tests
+        if: steps.probe.outputs.has == '1'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: aosp_atd
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest $GRADLE_ARGS --no-daemon --console=plain
+
+      - name: Upload instrumentation results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumentation-results
+          path: '**/build/outputs/androidTest-results/**'
+
+  # ---------------------------------------------------------------------------
+  # 3.5) device：模拟器上的动态回归（scripts/emulator/anchor_local.py，自带断言）。
+  #      与 instrumented 互补：不需要 androidTest 源，直接驱动真 UI（CDP 读 DOM）——
+  #      布局 / 滚动 / 合成层这类事故只有它看得见。先只跑 scroll + sealed 两条
+  #      （每次引导都要装包，控制时长）；稳定后再逐条加进清单。
+  # ---------------------------------------------------------------------------
+  device:
+    name: device (API 35)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build standard debug (x86_64 for emulator)
+        run: ./gradlew :app:assembleStandardDebug $GRADLE_ARGS --no-daemon --console=plain
+
+      - name: Locate x86_64 APK
+        id: apk
+        run: |
+          f=$(find app/build/outputs/apk/standard -name '*x86_64*.apk' | head -1)
+          if [ -z "$f" ]; then echo "::error::没找到 x86_64 debug APK"; exit 1; fi
+          echo "path=$f" >> "$GITHUB_OUTPUT"
+
+      - name: Run dynamic regressions (emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: aosp_atd
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -e
+            for c in scroll sealed; do
+              echo "== anchor_local: $c =="
+              python scripts/emulator/anchor_local.py "$c" "${{ steps.apk.outputs.path }}"
+            done
+
+      - name: Upload probe artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-probe
+          path: '**/perf-out/**'
+          if-no-files-found: ignore
+
+  # 汇总入口：分支保护只需要勾选这一个 check。
+  all-checks-passed:
+    name: all checks passed
+    if: always()
+    needs: [static, unit, complete, instrumented, device]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify lane results
+        run: |
+          echo "static=${{ needs.static.result }} unit=${{ needs.unit.result }} complete=${{ needs.complete.result }} instrumented=${{ needs.instrumented.result }} device=${{ needs.device.result }}"
+          if [ "${{ needs.static.result }}" != "success" ] || [ "${{ needs.unit.result }}" != "success" ] || [ "${{ needs.complete.result }}" != "success" ]; then
+            exit 1
+          fi
+          # 这两条 lane 在没有测试源/没有设备时会被各自显式跳过，skipped 视为通过
+          if [ "${{ needs.instrumented.result }}" != "success" ] && [ "${{ needs.instrumented.result }}" != "skipped" ]; then
+            exit 1
+          fi
+          if [ "${{ needs.device.result }}" != "success" ] && [ "${{ needs.device.result }}" != "skipped" ]; then
+            exit 1
+          fi

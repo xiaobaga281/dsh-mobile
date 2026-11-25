@@ -1,0 +1,72 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+preview/shots/*.png
+
+# 本机发布签名（自签名，勿入库）
+keystore/
+
+# 模型服务凭据（真实 api key，只放本机；曾误入库过一次，别再加回来）
+agnes.key
+
+# 签名凭据文件（口令只放本机/CI secret，永不入库）
+keystore.properties
+*.jks
+*.keystore
+.env
+.env.*
+
+# 根目录调试产物（截图/日志/安装包，约 1GB，不入库；发布产物放 ../dsh-mobile-release）
+/*.png
+/*.log
+/*.err.log
+/*.apk
+/*.csv
+/*.json.tmp
+/.tmp/
+/.test/
+/.shots/
+/.kotlin/
+/.workbuddy/
+/docs/_probe*.txt
+/mapping-rc*.txt
+
+# 运行时大体积产物（可由 scripts/fetch-runtimes.mjs + resolve-apks.mjs + .motion/verify/pack-rootfs.sh 管线重建）
+app/src/complete/jniLibs/*/libdshrootfs.so
+.motion/runtimes/
+.motion/m0/
+.motion/verify/after1/
+.motion/verify/bug-*/
+.motion/verify/m1-runtime/
+.motion/verify/probe-*.json
+
+# 打包工具链（~53MB）：用 scripts/prepare-buildtools.sh 生成，不进仓库
+app/src/complete/assets/buildtools/
+
+# 调试期临时产物（uiautomator dump / 会话日志副本），不进仓库
+.motion/verify/*.xml
+.motion/verify/last-session.jsonl
+.motion/verify/last-req.bin
+.motion/verify/last-req.txt
+app/src/complete/jniLibs/*/libdshaapt2.so
+app/src/complete/jniLibs/*/libdshgit.so
+app/src/complete/jniLibs/*/libdshnpm.so
+app/src/complete/jniLibs/*/libdshnode.so
+.motion/verify/app-*.apk
+.motion/verify/app-*.apk.idsig
+.motion/verify/emu.log
+
+# 性能/回归脚本的测量产物（截图、采样）
+.motion/verify/perf-out/
+
+# Python 探针/脚本的字节码缓存
+__pycache__/
+*.pyc

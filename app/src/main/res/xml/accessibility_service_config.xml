@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  无障碍服务配置 —— 手机端 computer use（操控其它应用）的运行时。
+
+  桌面 Harness 的 computer-use 是「提供方注册制」：Cua Driver 提供方注册后，
+  模型经它观察（截图）并操作桌面。安卓没有 cua-driver，等价物是系统
+  AccessibilityService：用户显式授权后，可读取屏幕节点树并向任意应用
+  派发点击/滑动/输入/系统按键。
+
+  flagDefault 不含 canRetrieveWindowContent 之外的敏感能力；
+  canPerformGestures 用于坐标点击与滑动（桌面 Cua 的 mouse 操作等价物）。
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewFocused|typeTouchInteractionStart"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagReportViewIds|flagRetrieveInteractiveWindows"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:canTakeScreenshot="true"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="100"
+    android:settingsActivity="ai.deepseek.harness.mobile.MainActivity" />

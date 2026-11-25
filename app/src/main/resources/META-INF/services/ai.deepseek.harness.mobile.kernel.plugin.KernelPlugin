@@ -1,0 +1,61 @@
+# 内置内核插件清单 —— Java ServiceLoader 标准机制。
+# 新增内置插件：实现 ai.deepseek.harness.mobile.kernel.plugin.KernelPlugin（公开类、无参构造），
+# 然后把类名加到本文件。内核 ToolKernel 不需要改任何代码。
+#
+# 顺序即装配顺序（先注册的插件先占工具名）。
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.FsPlugin
+# 文档读取：PDF / Word / Excel / PPT 正文抽取（read 只能读纯文本）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.doc.DocPlugin
+# 文档生成：Markdown → .docx，二维数据 → .xlsx（纯 JDK 写 OOXML）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.doc.DocWritePlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.ShellPlugin
+# 语言运行时：python / node（双底座解析，缺失返回 NEED_RUNTIME）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.RuntimePlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.HarnessPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.PresetToolsPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.doc.EditorPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.TerminalPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.agent.SchedulePlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.agent.SessionToolsPlugin
+# 智能体团队：一个插件同时提供服务（roster/任务板/运行时）、十个工具与 team policy
+ai.deepseek.harness.mobile.kernel.plugin.builtin.agent.AgentTeamPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.agent.AgentControlPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.CompatPlugin
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.ComputerUsePlugin
+# 自造插件：Agent 写清单 → 当场装配/卸载
+ai.deepseek.harness.mobile.kernel.plugin.builtin.fs.PluginBuilderPlugin
+# 全局/会话记忆：写、查、列、删
+ai.deepseek.harness.mobile.kernel.plugin.builtin.agent.MemoryPlugin
+# 图像生成：外部 API（可选）+ 内置 SVG 海报
+ai.deepseek.harness.mobile.kernel.plugin.builtin.doc.ImagePlugin
+# 表情包：列举 / 发送 / 收藏
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.StickerPlugin
+# 视频生成：外部视频 API → 工作区文件 + 对话内播放
+ai.deepseek.harness.mobile.kernel.plugin.builtin.doc.VideoPlugin
+# 语音输出：speak 工具（系统 TTS）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.SpeechPlugin
+# 系统提醒：notify 工具（长任务完成 / 定时到点主动叫用户）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.NotifyPlugin
+# 纯能力插件（不贡献工具，只挂事件）：注入了「当前时间」段落
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.ClockPlugin
+# 陪伴式畅聊：心跳到点主动搭话（有话说才开口 / 免打扰 / 记住线索）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.CompanionPlugin
+# 手机媒体：系统相册读写 + SAF 导入 + 导出下载目录（MediaStore/SAF，无需全局存储权限）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.DeviceMediaPlugin
+# 采集与分享：系统相机拍照 / 语音转写 / 系统分享面板
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.CapturePlugin
+# 系统时钟：alarm_set / timer_set 落到系统时钟 App（零运行时权限）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.AlarmPlugin
+# 手机状态：device_info（电量/存储/网络）+ location_get（单次定位）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.SystemInfoPlugin
+# 日历与联系人：calendar_read/create + contacts_search（敏感，默认不进档位）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.PersonalDataPlugin
+# 装应用：把工作区里的 APK 交给系统安装器（PackageInstaller 会话 + 结果回传）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.app.AppInstallPlugin
+# 手机打包：aapt2 + d8 + ecj + apksigner，产物可直接 app_install
+ai.deepseek.harness.mobile.kernel.plugin.builtin.app.AppBuildPlugin
+# 操控灵动岛：手机操控时屏幕顶部常驻胶囊（收起=简略动作名，展开=详情；
+# 窗口宿主在 PhoneControlService，内容与展示逻辑全在本插件）
+ai.deepseek.harness.mobile.kernel.plugin.builtin.device.ControlIslandPlugin
+# 前端自改：随包源码 → workspace 可写副本 → 设备内重建 app.js → WebView 覆盖加载
+ai.deepseek.harness.mobile.kernel.plugin.builtin.dev.SelfModifyPlugin

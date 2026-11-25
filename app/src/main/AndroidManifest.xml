@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- device_info 读网络类型：漏写会让 ConnectivityManager.activeNetwork 抛 SecurityException -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 装应用（app_install 工具）：把工作区里的 APK 交给系统安装器 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 语音输入 / transcribe 工具 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 定位（WebView 地理位置接口 / 附近能力） -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- 通讯录（联系人查找） -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- 系统日历（calendar_read / calendar_create，工具默认关闭、overrides 加白后可用） -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- 系统时钟意图（alarm_set / timer_set，normal 级安装权限，无运行时申请） -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- 相机（拍摄提问）；required=false：没有相机的设备/Chromebook 也能安装 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- 照片与媒体（读取本机图片/视频/音频） -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- 通知（任务完成与回复提醒，Android 13+ 运行时申请） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 灵动岛：会话后台运行悬浮窗 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- 会话运行期间持有 CPU 唤醒锁：熄屏/深睡时流式请求与工具执行不能停 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 引导用户把本应用加入电池优化白名单（否则退到后台会被系统冻结） -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!--
+      定时任务重启恢复：AlarmManager 的闹钟在设备重启后被系统清空，必须收到
+      BOOT_COMPLETED 才能重新挂上。没有这条权限，「重启后定时任务静默消失」
+      就是必然结果（此前确实没有）。
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+      Android 11+ 包可见性：phone_list_apps / phone_app_info / app_install 要枚举全部
+      已安装应用。不声明这条，getInstalledApplications 只返回本应用自己（系统按
+      <queries> 过滤），表现为「phone_list_apps 只列出 ai.deepseek.harness.mobile」。
+      注意：真因是系统包可见性，不是 proot —— PhoneControlService 跑在宿主进程的
+      AccessibilityService 里，从未进过 proot 沙箱。
+    -->
+    <!-- 设备操控/造 App 必须枚举全部应用；这是本应用的核心能力，不是可选统计 -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- 荣耀 aar 未声明 targetSdk，AGP 会按 targetSdk<4 自动补三条 legacy 权限，这里显式移除 -->
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+
+    <!-- Android 11+ 包可见性：不声明就查不到语音识别服务，isRecognitionAvailable 恒为 false -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <!-- 时钟 App：alarm_set / timer_set 要 resolveActivity 探测 -->
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_TIMER" />
+        </intent>
+        <!-- 相机：photo_capture 要 resolveActivity 探测。Android 11+ 不声明这里，
+             隐式相机 intent 的 resolveActivity 恒为 null，拍照工具会误报「没有相机应用」 -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DSH"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|locale|layoutDirection"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 会话运行通知：前台服务保活 + 一条进度通知（不依赖任何厂商胶囊能力） -->
+        <service
+            android:name=".notify.RunService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="agent_session_keepalive" />
+        </service>
+
+        <!-- 陪伴式畅聊保活：companion 插件开启时驻留前台，后台/深睡期间心跳照常到点 -->
+        <service
+            android:name=".kernel.plugin.builtin.device.CompanionKeepService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="companion_keepalive" />
+        </service>
+
+        <!-- 团队保活：有 teammate 在跑时驻留前台，切走 App 后队友继续执行 -->
+        <!-- 更新包下载：前台服务，切走 App 也不断；完成后通知可一点直接进安装器 -->
+        <service
+            android:name=".update.UpdateService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="app_update_download" />
+        </service>
+
+        <service
+            android:name=".kernel.team.TeamKeepService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="agent_team_keepalive" />
+        </service>
+
+        <!--
+          定时任务的重启恢复与到点唤醒（WP5）。
+          - ScheduleBootReceiver：只做「重新挂闹钟」，不在广播里做投递
+            （广播接收器生命周期约 10 秒，跑投递既不可靠也容易被杀）
+          - ScheduleAlarmReceiver：闹钟到点；内核在跑时交给进程内定时器，
+            不在时发通知把用户叫回来，由进程启动时的补发路径真正写入原会话
+          exported=false：不接受外部广播，只收系统 BOOT_COMPLETED 与自己发出的显式 alarm
+        -->
+        <receiver
+            android:name=".kernel.schedule.ScheduleBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <!-- 系统安装器的结果回调（AppInstallPlugin 的 PackageInstaller 会话） -->
+        <receiver
+            android:name=".kernel.plugin.builtin.app.InstallReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".kernel.schedule.ScheduleAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="ai.dsh.schedule.ALARM" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          手机操控（computer use 的安卓等价运行时）：用户显式开启后，
+          Agent 可读屏并代操作其它应用。桌面侧同一能力来自 Cua Driver 提供方。
+        -->
+        <service
+            android:name=".kernel.device.PhoneControlService"
+            android:exported="true"
+            android:label="@string/accessibility_service_description"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!-- present 交付物：把工作区文件以 content:// 交给系统查看器打开 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

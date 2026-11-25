@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 通知 action「停止」：两根圆角竖条 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.5,5 h2.4 a1.6,1.6 0 0 1 1.6,1.6 v10.8 a1.6,1.6 0 0 1 -1.6,1.6 h-2.4 a1.6,1.6 0 0 1 -1.6,-1.6 v-10.8 a1.6,1.6 0 0 1 1.6,-1.6 Z M14.1,5 h2.4 a1.6,1.6 0 0 1 1.6,1.6 v10.8 a1.6,1.6 0 0 1 -1.6,1.6 h-2.4 a1.6,1.6 0 0 1 -1.6,-1.6 v-10.8 a1.6,1.6 0 0 1 1.6,-1.6 Z" />
+</vector>

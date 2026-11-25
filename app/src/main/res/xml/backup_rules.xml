@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  云备份排除清单：
+  · asr-pro/      增强识别模型（186MB，重装可再下）
+  · tts-neural/   内置神经语音包（31MB，随 APK 分发，重装即有）
+  · voice-cache/  语音条合成缓存（上限 20MB，随时可重建）
+  · kernel/       内核配置与**自造插件**（plugins/*.json、plugins.json 启停状态）
+  · workspace/    Agent 读写的工作区文件
+  · voice/        系统 TTS 分段合成的临时文件
+  · sharedpref/   中继口令、账号 token、宿主 token 等凭据（绝不进云备份 / 换机迁移）
+  这样「卸载应用」= 连插件一起彻底删除；换机迁移也不会把插件和凭据带过去。
+-->
+<full-backup-content>
+    <exclude domain="file" path="asr-pro/" />
+    <exclude domain="file" path="tts-neural/" />
+    <exclude domain="file" path="voice-cache/" />
+    <exclude domain="file" path="kernel/" />
+    <exclude domain="file" path="workspace/" />
+    <exclude domain="file" path="voice/" />
+    <exclude domain="sharedpref" path="." />
+</full-backup-content>

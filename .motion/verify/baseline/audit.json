@@ -1,0 +1,253 @@
+{
+  "label": "baseline",
+  "generatedAt": "2026-10-24T14:11:41.273Z",
+  "appVersionHint": "rc.98 (baseline APK)",
+  "total": 5,
+  "ok": 4,
+  "failed": 1,
+  "skipped": 0,
+  "results": [
+    {
+      "script": "audit1.mjs",
+      "exitCode": 0,
+      "durationMs": 603,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 0,
+      "log": [],
+      "stdout": [
+        "{",
+        "\"screens\": [",
+        "{",
+        "\"id\": \"sessions\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"chat\",",
+        "\"active\": true,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"jobs\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"files\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"settings\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "}",
+        "],",
+        "\"rows\": [",
+        "{",
+        "\"id\": \"rowContext\",",
+        "\"label\": \"上下文窗口\",",
+        "\"value\": \"128k\",",
+        "\"tag\": \"BUTTON\"",
+        "},",
+        "{",
+        "\"id\": \"rowMaxOut\",",
+        "\"label\": \"最大输出\",",
+        "\"value\": \"64k\",",
+        "\"tag\": \"BUTTON\"",
+        "},",
+        "{",
+        "\"id\": \"rowCompact\",",
+        "\"label\": \"上下文压缩\",",
+        "\"value\": \"自动 · 90%\",",
+        "\"tag\": \"BUTTON\"",
+        "},",
+        "{",
+        "\"id\": \"(no-id)\",",
+        "\"label\": \"会话记忆\",",
+        "\"value\": \"\",",
+        "\"tag\": \"DIV\"",
+        "},",
+        "{",
+        "\"id\": \"(no-id)\","
+      ],
+      "stdoutRaw": "{\n \"screens\": [\n  {\n   \"id\": \"sessions\",\n   \"active\": false,\n   \"sh\": 915,\n   \"ch\": 915\n  },\n  {\n   \"id\": \"chat\",\n   \"active\": true,\n   \"sh\": 915,\n   \"ch\": 915\n  },\n  {\n   \"id\": \"jobs\",\n   \"active\": false,\n   \"sh\": 915,\n   \"ch\": 915\n  },\n  {\n   \"id\": \"files\",\n   \"active\": false,\n   \"sh\": 915,\n   \"ch\": 915\n  },\n  {\n   \"id\": \"settings\",\n   \"active\": false,\n   \"sh\": 915,\n   \"ch\": 915\n  }\n ],\n \"rows\": [\n  {\n   \"id\": \"rowContext\",\n   \"label\": \"上下文窗口\",\n   \"value\": \"128k\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowMaxOut\",\n   \"label\": \"最大输出\",\n   \"value\": \"64k\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowCompact\",\n   \"label\": \"上下文压缩\",\n   \"value\": \"自动 · 90%\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"会话记忆\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"全局记忆\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"rowGlobalMems\",\n   \"label\": \"全局记忆条目\",\n   \"value\": \"2 条\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPersona\",\n   \"label\": \"角色设定\",\n   \"value\": \"默认\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowCompanion\",\n   \"label\": \"陪伴式畅聊\",\n   \"value\": \"已开启 · 适中 · 23–08 静默\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowLanguage\",\n   \"label\": \"语言\",\n   \"value\": \"简体中文\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPermission\",\n   \"label\": \"权限\",\n   \"value\": \"已全部授权\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"联网搜索\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"rowSearchCfg\",\n   \"label\": \"搜索接口\",\n   \"value\": \"未配置\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowMode\",\n   \"label\": \"运行方式\",\n   \"value\": \"本地独立\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPresetDefault\",\n   \"label\": \"新对话默认档位\",\n   \"value\": \"标准模式\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowHost\",\n   \"label\": \"连接电脑\",\n   \"value\": \"未连接\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowWorkspace\",\n   \"label\": \"默认工作区\",\n   \"value\": \"harness\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPlugins\",\n   \"label\": \"内核插件\",\n   \"value\": \"28/28 已启用\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowNotify\",\n   \"label\": \"运行通知\",\n   \"value\": \"已开启\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowModels\",\n   \"label\": \"默认模型\",\n   \"value\": \"Agnes 3.0 Flash\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowAddModel\",\n   \"label\": \"添加自定义模型\",\n   \"value\": \"\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowUsage\",\n   \"label\": \"额度与用量\",\n   \"value\": \"310k tokens\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"深色模式\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"rowGenModels\",\n   \"label\": \"图片 / 视频模型\",\n   \"value\": \"图片 — · 视频 —\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPerm\",\n   \"label\": \"权限模式\",\n   \"value\": \"默认权限\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"危险操作前询问\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"(no-id)\",\n   \"label\": \"完成后通知\",\n   \"value\": \"\",\n   \"tag\": \"DIV\"\n  },\n  {\n   \"id\": \"rowTeam\",\n   \"label\": \"智能体团队\",\n   \"value\": \"8 并行 · 深度 1\",\n   \"tag\": \"BUTTON\"\n  },\n  {\n   \"id\": \"rowPrompt\",\n   \"label\": \"查看系统提示词\",\n   \"value\": \"未设置\",\n   \"tag\": \"BUTTON\"\n  }\n ],\n \"sws\": [\n  {\n   \"id\": \"swSessMem\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swGlobalMem\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swSearch\",\n   \"checked\": false\n  },\n  {\n   \"id\": \"swDark\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swAskDanger\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swNotifyDone\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swCompanion\",\n   \"checked\": true\n  },\n  {\n   \"id\": \"swCompanionVoice\",\n   \"checked\": false\n  }\n ],\n \"tabbar\": true,\n \"indicator\": {\n  \"w\": \"74.8095px\",\n  \"tr\": \"0.46s, 0.34s\"\n },\n \"w\": 412,\n \"h\": 915,\n \"dpr\": 2.625,\n \"screenTrans\": \"0.24s, 0.3s, 0.24s\",\n \"dark\": \"dark\"\n}\nERRORS: []\n"
+    },
+    {
+      "script": "audit2.mjs",
+      "exitCode": 1,
+      "durationMs": 246,
+      "timedOut": false,
+      "errorLines": [
+        "file:///D:/1/dsh-mobile/.test/drv.mjs:24",
+        "  if (r.result?.exceptionDetails) throw new Error(\"eval ERR: \" + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text));",
+        "                                        ^",
+        "Error: eval ERR: TypeError: Cannot read properties of null (reading 'dataset')",
+        "    at <anonymous>:4:56",
+        "    at <anonymous>:32:5",
+        "    at evaljs (file:///D:/1/dsh-mobile/.test/drv.mjs:24:41)",
+        "    at async visit (file:///D:/1/dsh-mobile/.test/audit2.mjs:9:13)",
+        "    at async file:///D:/1/dsh-mobile/.test/audit2.mjs:45:72",
+        "Node.js v24.15.0"
+      ],
+      "logCount": 0,
+      "log": [],
+      "stdout": [],
+      "stdoutRaw": ""
+    },
+    {
+      "script": "audit3.mjs",
+      "exitCode": 0,
+      "durationMs": 5538,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 5,
+      "log": [
+        {
+          "active": true,
+          "title": "创建一个名叫 tester 的队友（描述",
+          "sub": "本地 · Agnes 3.0 Flash",
+          "msgs": 24,
+          "wide": [],
+          "canSideScroll": false,
+          "scroller": {
+            "sw": 412,
+            "cw": 412
+          },
+          "tabHidden": true
+        },
+        {
+          "attach": {
+            "on": true,
+            "title": "快捷操作",
+            "items": 11,
+            "labels": [
+              "标准模式处理代码、文件与资料",
+              "PTC 模式批量调用工具并整",
+              "极简模式终端 + 图片读取，",
+              "创造模式让 Agent 写插",
+              "计划模式只读探索，提交计划，",
+              "目标模式设定一个目标，分多轮",
+              "表情包发送表情 · 从相册图",
+              "上传文件 / 图片",
+              "模型",
+              "思考强度",
+              "工作区"
+            ]
+          }
+        },
+        {
+          "more": {
+            "on": true,
+            "title": "",
+            "items": 6,
+            "labels": [
+              "分享会话",
+              "重命名",
+              "连接电脑填三项连上电脑",
+              "会话记忆"
+            ]
+          }
+        },
+        {
+          "backAnim": {
+            "t0": "0",
+            "t1": "0.0534924",
+            "t2": "1",
+            "tabBack": true,
+            "indicator": "74.8095px"
+          }
+        },
+        {
+          "errors": []
+        }
+      ],
+      "stdout": [],
+      "stdoutRaw": "{\"active\":true,\"title\":\"创建一个名叫 tester 的队友（描述\",\"sub\":\"本地 · Agnes 3.0 Flash\",\"msgs\":24,\"wide\":[],\"canSideScroll\":false,\"scroller\":{\"sw\":412,\"cw\":412},\"tabHidden\":true}\n{\"attach\":{\"on\":true,\"title\":\"快捷操作\",\"items\":11,\"labels\":[\"标准模式处理代码、文件与资料\",\"PTC 模式批量调用工具并整\",\"极简模式终端 + 图片读取，\",\"创造模式让 Agent 写插\",\"计划模式只读探索，提交计划，\",\"目标模式设定一个目标，分多轮\",\"表情包发送表情 · 从相册图\",\"上传文件 / 图片\",\"模型\",\"思考强度\",\"工作区\"]}}\n{\"more\":{\"on\":true,\"title\":\"\",\"items\":6,\"labels\":[\"分享会话\",\"重命名\",\"连接电脑填三项连上电脑\",\"会话记忆\"]}}\n{\"backAnim\":{\"t0\":\"0\",\"t1\":\"0.0534924\",\"t2\":\"1\",\"tabBack\":true,\"indicator\":\"74.8095px\"}}\n{\"errors\":[]}\n"
+    },
+    {
+      "script": "audit4.mjs",
+      "exitCode": 0,
+      "durationMs": 91052,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 5,
+      "log": [
+        {
+          "companion": {
+            "before": true,
+            "after": false,
+            "valueAfterOn": "未开启",
+            "restored": true
+          }
+        },
+        {
+          "mic": {
+            "veilOn": true,
+            "live": "正在聆听…",
+            "closed": true
+          }
+        },
+        {
+          "send": {
+            "sent": true,
+            "msgsBefore": 24
+          }
+        },
+        {
+          "replied": {
+            "n": 26,
+            "running": false,
+            "tail": "深度求索中",
+            "done": true
+          }
+        },
+        {
+          "errors": []
+        }
+      ],
+      "stdout": [],
+      "stdoutRaw": "{\"companion\":{\"before\":true,\"after\":false,\"valueAfterOn\":\"未开启\",\"restored\":true}}\n{\"mic\":{\"veilOn\":true,\"live\":\"正在聆听…\",\"closed\":true}}\n{\"send\":{\"sent\":true,\"msgsBefore\":24}}\n{\"replied\":{\"n\":26,\"running\":false,\"tail\":\"深度求索中\",\"done\":true}}\n{\"errors\":[]}\n"
+    },
+    {
+      "script": "audit5.mjs",
+      "exitCode": 0,
+      "durationMs": 121523,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 2,
+      "log": [
+        {
+          "ok": true,
+          "before": 26
+        },
+        {
+          "last": {
+            "n": 26,
+            "running": true,
+            "tools": [
+              "派生协作代理\n          装机实测验证员\n          \n    ",
+              "等待子代理\n          wait_agent\n          \n  ",
+              "子代理列表\n          list_agents\n          \n ",
+              "给子代理发消息\n          请回复一句话确认你已上线（例如「tester",
+              "等待子代理\n          wait_agent\n          \n  ",
+              "子代理列表\n          list_agents\n          \n ",
+              "创建团队任务\n          为“买苹果”创建一份简洁PPT。内容应覆盖：买"
+            ],
+            "hasCard": false,
+            "cards": 0,
+            "tail": "om:443）\n            \n          用一句话告诉我现在几点了，不要调用任何工具深度求索中，用时 122 秒 ···"
+          }
+        }
+      ],
+      "stdout": [],
+      "stdoutRaw": "{\"ok\":true,\"before\":26}\n{\"last\":{\"n\":26,\"running\":true,\"tools\":[\"派生协作代理\\n          装机实测验证员\\n          \\n    \",\"等待子代理\\n          wait_agent\\n          \\n  \",\"子代理列表\\n          list_agents\\n          \\n \",\"给子代理发消息\\n          请回复一句话确认你已上线（例如「tester\",\"等待子代理\\n          wait_agent\\n          \\n  \",\"子代理列表\\n          list_agents\\n          \\n \",\"创建团队任务\\n          为“买苹果”创建一份简洁PPT。内容应覆盖：买\"],\"hasCard\":false,\"cards\":0,\"tail\":\"om:443）\\n            \\n          用一句话告诉我现在几点了，不要调用任何工具深度求索中，用时 122 秒 ···\"}}\n"
+    }
+  ]
+}

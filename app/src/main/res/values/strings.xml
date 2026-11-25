@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DeepSeek</string>
+    <string name="accessibility_service_description">让 DeepSeek Agent 读取当前屏幕内容并代你操作手机（点击、滑动、输入、切换应用）。这是「电脑端操控桌面」的手机端等价能力，仅在你手动开启后生效，可随时在系统设置里关闭。</string>
+</resources>

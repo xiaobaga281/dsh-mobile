@@ -1,0 +1,782 @@
+{
+  "label": "baseline",
+  "generatedAt": "2026-10-24T14:05:00.063Z",
+  "appVersionHint": "rc.98 (baseline APK)",
+  "total": 5,
+  "ok": 5,
+  "failed": 0,
+  "skipped": 0,
+  "results": [
+    {
+      "script": "audit1.mjs",
+      "exitCode": 0,
+      "durationMs": 459,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 0,
+      "log": [],
+      "stdout": [
+        "{",
+        "\"screens\": [",
+        "{",
+        "\"id\": \"sessions\",",
+        "\"active\": true,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"chat\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"jobs\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"files\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "},",
+        "{",
+        "\"id\": \"settings\",",
+        "\"active\": false,",
+        "\"sh\": 915,",
+        "\"ch\": 915",
+        "}",
+        "],",
+        "\"rows\": [",
+        "{",
+        "\"id\": \"rowContext\",",
+        "\"label\": \"上下文窗口\",",
+        "\"value\": \"128k\",",
+        "\"tag\": \"BUTTON\"",
+        "},"
+      ]
+    },
+    {
+      "script": "audit2.mjs",
+      "exitCode": 0,
+      "durationMs": 36307,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 36,
+      "log": [
+        {
+          "tab": "sessions",
+          "from": "sessions",
+          "active": true,
+          "t0": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "t1": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "t2": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "scrollW": {
+            "de": 412,
+            "deC": 412,
+            "bd": 412,
+            "bdC": 412
+          },
+          "canSideScroll": false,
+          "wide": [],
+          "indW": "74.8095px"
+        },
+        {
+          "tab": "jobs",
+          "from": "sessions",
+          "active": true,
+          "t0": {
+            "op": "0",
+            "tr": "matrix(0.995, 0, 0, 0.995, 0, 6)",
+            "vis": "hidden"
+          },
+          "t1": {
+            "op": "0.314339",
+            "tr": "matrix(0.997638, 0, 0, 0.997638, 0, 2.83501)",
+            "vis": "visible"
+          },
+          "t2": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "scrollW": {
+            "de": 412,
+            "deC": 412,
+            "bd": 412,
+            "bdC": 412
+          },
+          "canSideScroll": false,
+          "wide": [],
+          "indW": "74.8095px"
+        },
+        {
+          "tab": "files",
+          "from": "jobs",
+          "active": true,
+          "t0": {
+            "op": "0",
+            "tr": "matrix(0.995, 0, 0, 0.995, 0, 6)",
+            "vis": "hidden"
+          },
+          "t1": {
+            "op": "0.313701",
+            "tr": "matrix(0.997633, 0, 0, 0.997633, 0, 2.84063)",
+            "vis": "visible"
+          },
+          "t2": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "scrollW": {
+            "de": 412,
+            "deC": 412,
+            "bd": 412,
+            "bdC": 412
+          },
+          "canSideScroll": false,
+          "wide": [],
+          "indW": "74.8095px"
+        },
+        {
+          "tab": "settings",
+          "from": "files",
+          "active": true,
+          "t0": {
+            "op": "0",
+            "tr": "matrix(0.995, 0, 0, 0.995, 0, 6)",
+            "vis": "hidden"
+          },
+          "t1": {
+            "op": "0.314339",
+            "tr": "matrix(0.997638, 0, 0, 0.997638, 0, 2.83501)",
+            "vis": "visible"
+          },
+          "t2": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "scrollW": {
+            "de": 412,
+            "deC": 412,
+            "bd": 412,
+            "bdC": 412
+          },
+          "canSideScroll": false,
+          "wide": [],
+          "indW": "74.8095px"
+        },
+        {
+          "tab": "sessions",
+          "from": "settings",
+          "active": true,
+          "t0": {
+            "op": "0",
+            "tr": "matrix(0.995, 0, 0, 0.995, 0, 6)",
+            "vis": "hidden"
+          },
+          "t1": {
+            "op": "0.314025",
+            "tr": "matrix(0.997635, 0, 0, 0.997635, 0, 2.83778)",
+            "vis": "visible"
+          },
+          "t2": {
+            "op": "1",
+            "tr": "none",
+            "vis": "visible"
+          },
+          "scrollW": {
+            "de": 412,
+            "deC": 412,
+            "bd": 412,
+            "bdC": 412
+          },
+          "canSideScroll": false,
+          "wide": [],
+          "indW": "74.8095px"
+        },
+        {
+          "rowIds": [
+            "rowContext",
+            "rowMaxOut",
+            "rowCompact",
+            "rowGlobalMems",
+            "rowPersona",
+            "rowCompanion",
+            "rowLanguage",
+            "rowPermission",
+            "rowSearchCfg",
+            "rowMode",
+            "rowPresetDefault",
+            "rowHost",
+            "rowWorkspace",
+            "rowPlugins",
+            "rowNotify",
+            "rowModels",
+            "rowAddModel",
+            "rowUsage",
+            "rowGenModels",
+            "rowPerm",
+            "rowTeam",
+            "rowPrompt"
+          ]
+        },
+        {
+          "id": "rowContext",
+          "on": true,
+          "title": "上下文窗口",
+          "len": 787,
+          "bodyH": 271,
+          "sheetTop": 586,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowMaxOut",
+          "on": true,
+          "title": "最大输出",
+          "len": 661,
+          "bodyH": 227,
+          "sheetTop": 630,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowCompact",
+          "on": true,
+          "title": "上下文压缩",
+          "len": 822,
+          "bodyH": 282,
+          "sheetTop": 575,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowGlobalMems",
+          "on": true,
+          "title": "全局记忆",
+          "len": 1941,
+          "bodyH": 486,
+          "sheetTop": 371,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 0
+        },
+        {
+          "id": "rowPersona",
+          "on": true,
+          "title": "角色设定",
+          "len": 2760,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 8
+        },
+        {
+          "id": "rowCompanion",
+          "on": true,
+          "title": "陪伴式畅聊",
+          "len": 4436,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 17
+        },
+        {
+          "id": "rowLanguage",
+          "on": true,
+          "title": "语言",
+          "len": 665,
+          "bodyH": 227,
+          "sheetTop": 630,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowPermission",
+          "on": true,
+          "title": "权限",
+          "len": 2470,
+          "bodyH": 619,
+          "sheetTop": 239,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 0
+        },
+        {
+          "id": "rowSearchCfg",
+          "on": true,
+          "title": "联网搜索接口",
+          "len": 618,
+          "bodyH": 369,
+          "sheetTop": 488,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowMode",
+          "on": true,
+          "title": "运行方式",
+          "len": 692,
+          "bodyH": 305,
+          "sheetTop": 552,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 2
+        },
+        {
+          "id": "rowPresetDefault",
+          "on": true,
+          "title": "新对话默认档位",
+          "len": 1212,
+          "bodyH": 391,
+          "sheetTop": 466,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 4
+        },
+        {
+          "id": "rowHost",
+          "on": true,
+          "title": "连接电脑",
+          "len": 1205,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 5
+        },
+        {
+          "id": "rowWorkspace",
+          "on": true,
+          "title": "工作区",
+          "len": 795,
+          "bodyH": 268,
+          "sheetTop": 589,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowPlugins",
+          "on": true,
+          "title": "插件",
+          "len": 14571,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 32
+        },
+        {
+          "id": "rowNotify",
+          "on": true,
+          "title": "运行通知",
+          "len": 1396,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowModels",
+          "on": true,
+          "title": "模型",
+          "len": 1878,
+          "bodyH": 479,
+          "sheetTop": 379,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 6
+        },
+        {
+          "id": "rowAddModel",
+          "on": true,
+          "title": "添加自定义模型",
+          "len": 2107,
+          "bodyH": 585,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 6
+        },
+        {
+          "id": "rowUsage",
+          "on": true,
+          "title": "额度与用量",
+          "len": 13211,
+          "bodyH": 585,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 0
+        },
+        {
+          "id": "rowGenModels",
+          "on": true,
+          "title": "生成模型",
+          "len": 1306,
+          "bodyH": 691,
+          "sheetTop": 167,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 6
+        },
+        {
+          "id": "rowPerm",
+          "on": true,
+          "title": "Agent 权限",
+          "len": 820,
+          "bodyH": 282,
+          "sheetTop": 571,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 3
+        },
+        {
+          "id": "rowTeam",
+          "on": true,
+          "title": "智能体团队",
+          "len": 728,
+          "bodyH": 293,
+          "sheetTop": 560,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 0
+        },
+        {
+          "id": "rowPrompt",
+          "on": true,
+          "title": "系统提示词",
+          "len": 565,
+          "bodyH": 297,
+          "sheetTop": 556,
+          "wide": [],
+          "canSideScroll": false,
+          "items": 2
+        },
+        {
+          "switchIds": [
+            "swSessMem",
+            "swGlobalMem",
+            "swSearch",
+            "swDark",
+            "swAskDanger",
+            "swNotifyDone"
+          ]
+        },
+        {
+          "id": "swSessMem",
+          "start": true,
+          "flipped": true,
+          "a": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 6.90208, 0)",
+            "bg": "rgba(60, 190, 94, 0.8)"
+          },
+          "end": {
+            "tr": "none",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "id": "swGlobalMem",
+          "start": true,
+          "flipped": true,
+          "a": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 6.88452, 0)",
+            "bg": "rgba(60, 190, 94, 0.8)"
+          },
+          "end": {
+            "tr": "none",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "id": "swSearch",
+          "start": false,
+          "flipped": true,
+          "a": {
+            "tr": "none",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 0, 0)",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 13.1333, 0)",
+            "bg": "rgba(81, 165, 106, 0.52)"
+          },
+          "end": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "id": "swDark",
+          "start": true,
+          "flipped": true,
+          "a": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 16.6599, 0)",
+            "bg": "rgba(52, 198, 89, 0.957)"
+          },
+          "end": {
+            "tr": "none",
+            "bg": "rgba(118, 118, 128, 0.12)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "id": "swAskDanger",
+          "start": true,
+          "flipped": true,
+          "a": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 6.87549, 0)",
+            "bg": "rgba(60, 190, 94, 0.8)"
+          },
+          "end": {
+            "tr": "none",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "id": "swNotifyDone",
+          "start": true,
+          "flipped": true,
+          "a": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "immediate": {
+            "tr": "matrix(1, 0, 0, 1, 20, 0)",
+            "bg": "rgb(52, 199, 89)"
+          },
+          "mid": {
+            "tr": "matrix(1, 0, 0, 1, 6.88452, 0)",
+            "bg": "rgba(60, 190, 94, 0.8)"
+          },
+          "end": {
+            "tr": "none",
+            "bg": "rgba(120, 120, 128, 0.32)"
+          },
+          "animated": true,
+          "restored": true
+        },
+        {
+          "errors": []
+        }
+      ],
+      "stdout": []
+    },
+    {
+      "script": "audit3.mjs",
+      "exitCode": 0,
+      "durationMs": 5503,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 5,
+      "log": [
+        {
+          "active": true,
+          "title": "创建一个名叫 tester 的队友（描述",
+          "sub": "本地 · Agnes 3.0 Flash",
+          "msgs": 20,
+          "wide": [],
+          "canSideScroll": false,
+          "scroller": {
+            "sw": 412,
+            "cw": 412
+          },
+          "tabHidden": true
+        },
+        {
+          "attach": {
+            "on": true,
+            "title": "快捷操作",
+            "items": 11,
+            "labels": [
+              "标准模式处理代码、文件与资料",
+              "PTC 模式批量调用工具并整",
+              "极简模式终端 + 图片读取，",
+              "创造模式让 Agent 写插",
+              "计划模式只读探索，提交计划，",
+              "目标模式设定一个目标，分多轮",
+              "表情包发送表情 · 从相册图",
+              "上传文件 / 图片",
+              "模型",
+              "思考强度",
+              "工作区"
+            ]
+          }
+        },
+        {
+          "more": {
+            "on": true,
+            "title": "",
+            "items": 6,
+            "labels": [
+              "分享会话",
+              "重命名",
+              "连接电脑填三项连上电脑",
+              "会话记忆"
+            ]
+          }
+        },
+        {
+          "backAnim": {
+            "t0": "0",
+            "t1": "0.0535948",
+            "t2": "1",
+            "tabBack": true,
+            "indicator": "74.8095px"
+          }
+        },
+        {
+          "errors": []
+        }
+      ],
+      "stdout": []
+    },
+    {
+      "script": "audit4.mjs",
+      "exitCode": 0,
+      "durationMs": 16387,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 5,
+      "log": [
+        {
+          "companion": {
+            "before": false,
+            "after": true,
+            "valueAfterOn": "已开启 · 适中 · 23–08 静默",
+            "restored": false
+          }
+        },
+        {
+          "mic": {
+            "veilOn": true,
+            "live": "正在聆听…",
+            "closed": true
+          }
+        },
+        {
+          "send": {
+            "sent": true,
+            "msgsBefore": 20
+          }
+        },
+        {
+          "replied": {
+            "n": 22,
+            "running": false,
+            "tail": "深度求索中，用时 10 秒 ···",
+            "done": true
+          }
+        },
+        {
+          "errors": []
+        }
+      ],
+      "stdout": []
+    },
+    {
+      "script": "audit5.mjs",
+      "exitCode": 0,
+      "durationMs": 121901,
+      "timedOut": false,
+      "errorLines": [],
+      "logCount": 2,
+      "log": [
+        {
+          "ok": true,
+          "before": 22
+        },
+        {
+          "last": {
+            "n": 22,
+            "running": true,
+            "tools": [
+              "派生协作代理\n          装机实测验证员\n          \n    ",
+              "等待子代理\n          wait_agent\n          \n  ",
+              "子代理列表\n          list_agents\n          \n ",
+              "给子代理发消息\n          请回复一句话确认你已上线（例如「tester",
+              "等待子代理\n          wait_agent\n          \n  ",
+              "子代理列表\n          list_agents\n          \n ",
+              "创建团队任务\n          为“买苹果”创建一份简洁PPT。内容应覆盖：买"
+            ],
+            "hasCard": false,
+            "cards": 0,
+            "tail": " tokens\n            \n          用一句话告诉我现在几点了，不要调用任何工具深度求索中，用时 133 秒 ···"
+          }
+        }
+      ],
+      "stdout": []
+    }
+  ]
+}

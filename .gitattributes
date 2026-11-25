@@ -1,0 +1,21 @@
+# 二进制资源禁止任何换行转换（PDF 样本曾被 CRLF 转换撑坏，导致对象偏移全错）
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.zip binary
+*.png binary
+
+# 前端源码与产物必须是 LF
+# scripts/build-web.mjs 与 gate web-bundle 逐字节比对，CRLF 会被判成「有人手改了产物」。
+# 本机 core.autocrlf=true，不加这几行的话，新克隆 / 重新检出后产物会变成 CRLF，门禁必红。
+web/src/*.js text eol=lf
+web/build.json text eol=lf
+app/src/main/assets/web/*.js text eol=lf
+app/src/main/assets/web/*.css text eol=lf
+app/src/main/assets/web/*.html text eol=lf
+preview/*.js text eol=lf
+preview/*.css text eol=lf
+preview/*.html text eol=lf
+scripts/*.mjs text eol=lf
+scripts/*/*.mjs text eol=lf

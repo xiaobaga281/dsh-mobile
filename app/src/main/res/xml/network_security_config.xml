@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 系统层允许明文，否则局域网里的本地模型（http://192.168.x.x:port）根本连不上。
+     真正的公网 http 拦截在应用层：kernel/NetPolicy 只放行本机/局域网/单标签主机名，
+     模型端点、模型拉取、裸调接口、搜索、中继等入口的公网 http 一律拒绝并要求 https。
+     这样「本地模型开箱即用」和「API Key 不明文出公网」同时成立。 -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

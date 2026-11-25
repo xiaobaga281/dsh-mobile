@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- debug 变体清单：
+     · 打开明文传输（主清单 release 是 false）；
+     · networkSecurityConfig 指到 debug 专用配置（只放行 localhost / 127.0.0.1 / 10.0.2.2），
+       不放通配；release 仍走主清单的「全禁明文」配置。
+     主清单不改（release 语义由 T4/runtime 负责）。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:networkSecurityConfig="@xml/network_security_config_debug"
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic,android:networkSecurityConfig" />
+</manifest>
